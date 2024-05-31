@@ -3,7 +3,7 @@ function numberFromElementText(aElement) {
   	(rounded(parseFloat(aElement.innerText.replace('.', '').replace(',', '.'))) || 0);
 }
 
-class Resource extends Serializable {	
+window.Resource = class Resource extends Serializable {	
 	constructor(aProv, aName, values) {
 		super();	
 	  this.myProv = aProv;
@@ -43,7 +43,7 @@ class Resource extends Serializable {
   toString() { return this.name;	}
 }
 
-VorschauTable = class VorschauTable {
+window.VorschauTable = class VorschauTable {
 	
 	constructor(srcTable, aProvName, modifyTable){
 	  this.provName = (aProvName) ? aProvName : CFG.CURRENT_PROV;

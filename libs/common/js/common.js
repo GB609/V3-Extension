@@ -12,6 +12,7 @@ var V3_URL = "http://v3.verbranntezone.ch/";
 // #include classes/options
 
 function ajax(url, postData, responseHandler, errorHandler = false) {
+  url = new URL(url, window.location);
   var request = new XMLHttpRequest();
   request.withCredentials = true;
   request.callback = responseHandler;
@@ -196,7 +197,7 @@ var CFG;
     };
 
   }
-  _CFG.prototype = new StorageBackedDict(window.localStorage);
+  _CFG.prototype = new StorageBackedDict(window.localStorage, "CFG");
 
   CFG = new _CFG();
   CFG.updateCurrentProv();

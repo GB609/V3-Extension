@@ -1,4 +1,4 @@
-var TEMPLATE = function(){
+window.TEMPLATE = function(){
 	return {
 	    /*
 	   * arg: name ohne prefix

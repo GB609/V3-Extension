@@ -14,20 +14,20 @@
 	};
 
   function updateGlobalTable(provList, globalData) {
-    var rows = RES_TABLE.rows;
+    let rows = RES_TABLE.rows;
 
-    for(var row = 1; row < rows.length; row++) {
+    for(let row = 1; row < rows.length; row++) {
       let current = rows[row];
-      var tds = current.cells;
+      let tds = current.cells;
 
       let resName = parseResourceName(tds[0]);
       if(typeof globalData[resName] == "undefined") continue;
 
-      var firstColClass = tds[1].getAttribute("class");
+      let firstColClass = tds[1].getAttribute("class");
 
       globalData[resName].entries.forEach((key, resource) => {
       	 if (resource.ch != 0) {
-           var targetTD = tds[provList[key]];
+           let targetTD = tds[provList[key]];
            targetTD.innerHTML = String.format('{} ({})', targetTD.innerHTML, resource.ch); 
 
            if(resource.ch > 0){
@@ -40,7 +40,7 @@
          }
       });
 
-      var newCol = DOM.td();
+      let newCol = DOM.td();
       newCol.innerHTML = rounded(globalData[resName].myTotalChange);
       if (globalData[resName].myTotalChange < 0) {
         newCol.setAttribute("class", firstColClass + " hinweis8");
@@ -59,13 +59,13 @@
   function retrieveAndShowResourceData() {
     try {
       let provColumns = {}; 
-      var links = DOM.byTag("a", RES_TABLE.rows[0]);
-      var pattern = /(\w+)[.\s]*\((\d+\/\d+)\)/;
+      let links = DOM.byTag("a", RES_TABLE.rows[0]);
+      let pattern = /(\w+)[.\s]*\((\d+\/\d+)\)/;
 
       let globalData = {};
-      for(var i = 0; i < links.length; i++) {
-        var data = pattern.exec(links[i].innerText);
-        next = {"name" : data[1], "coord" : data[2]};
+      for(let i = 0; i < links.length; i++) {
+        let data = pattern.exec(links[i].innerText);
+        let next = {"name" : data[1], "coord" : data[2]};
         provColumns[next.coord] = i+1;
                   
         CACHE.get('resUsage.'+next.coord, {}).forEach((key, val) => {
@@ -84,8 +84,8 @@
   }
 
   function initialize() {
-    var firstTd = RES_TABLE.rows[0].cells[0];
-    var resButton = DOM.button({
+    let firstTd = RES_TABLE.rows[0].cells[0];
+    let resButton = DOM.button({
       "id" : "resButton"
     }).addText('Verbrauch');
     firstTd.appendChild(resButton);

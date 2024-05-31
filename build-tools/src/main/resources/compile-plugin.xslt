@@ -21,9 +21,10 @@
     
 <xsl:variable name="headerEnd">
 // @grant GM_info
+// @grant GM.info
 // @grant GM_getResourceText
-// @attach-to top
-// @attach-to frame
+// @grant GM.getResourceText
+// @grant GM.getResourceUrl
 // ==/UserScript==
 </xsl:variable>
 

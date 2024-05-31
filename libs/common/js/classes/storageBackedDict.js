@@ -56,12 +56,12 @@ function StorageBackedDict(aStorage, aPrefix = false) {
       this.woLast = [...arr];
     }
     
-    resolveToDeepestParent(valueDict, {}){
+    resolveToDeepestParent(valueDict, defaults){
       if(this.depth == 1){
         return valueDict;
       }
       
-      return recursiveGet(this.woLast, valueDict, {});
+      return recursiveGet(this.woLast, valueDict, defaults);
     }
   }
 
@@ -100,11 +100,11 @@ function StorageBackedDict(aStorage, aPrefix = false) {
       throw 'key is undefined';
     }
 
-    var keys = analyseKeyPath(key, true);
+    var keys = analyseKeyPath(key);
     key = keys.first;
 
     if (!_values[key] || (JSON.stringify(_values[key]) != this.storage.getItem(key))) {
-      _values[key] = JSON.parse(this.storage.getItem(key), classDeserializer) || null;
+      _values[key] = JSON.parse(this.storage.getItem(key), classDeserializer.bind()) || null;
     }
 
     return recursiveGet(keys.full, _values, aDefault);
@@ -149,8 +149,9 @@ function StorageBackedDict(aStorage, aPrefix = false) {
       throw 'key is undefined';
     }
 
-    key = prefixedKey(key);
-    var toSave = value || _values[key];
+    let keys = analyseKeyPath(key);
+    key = keys.first;
+    var toSave = typeof value == "undefined" ? _values[key] : value;
 
     if (typeof toSave === "undefined") {
       throw 'no value for key [' + key + ']';
@@ -166,16 +167,12 @@ function StorageBackedDict(aStorage, aPrefix = false) {
   };
 
   this.clear = function(key = _prefix) {
-    getMatchingFirstLevelKeys(key).forEach(found => {
-      let keyPath = this.wipeCached(found);
-
-      //only persist existing object if it was a sub-value that has been deleted
-      if (keyPath.first != keyPath.lastOnly) {
-        this.persist(keyPath.first);
+      let keyPath = this.wipeCached(key);
+      if(keyPath == null || keyPath.depth == 1){
+        getMatchingFirstLevelKeys(key).forEach(this.storage.removeItem);
       } else {
-        this.storage.removeItem(keyPath.first);
+        this.persist(keyPath.first);
       }
-    });
   };
 
   this.wipeCached = function(key = _prefix) {

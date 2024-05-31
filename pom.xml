@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>V3</groupId>
+	<groupId>gb.v3</groupId>
 	<artifactId>GM-All</artifactId>
 	<version>2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
@@ -14,6 +14,8 @@
 	</modules>
 
 	<properties>
+    <mainVersion>2.0</mainVersion>
+    <pomVersion>${main.version}-SNAPSHOT</pomVersion>
 		<resultScriptFile>target/out/${artifactClassifier}s/${project.groupId}_${project.artifactId}.${artifactType}</resultScriptFile>
 		<skipResources>true</skipResources>
 		<checkedResDir>res</checkedResDir>
@@ -22,6 +24,8 @@
 		<xslOutputDir>target/out/${artifactClassifier}s</xslOutputDir>
 		<includeHeader>true</includeHeader>
 		<resPathAdjust>../</resPathAdjust>
+		<maven.build.timestamp.format>DDDkkmmss</maven.build.timestamp.format>
+		<scriptVersion>${mainVersion}.${maven.build.timestamp}</scriptVersion>
 	</properties>
 
 	<profiles>
@@ -178,7 +182,7 @@
 										</parameter>
 										<parameter>
 											<name>scriptVersion</name>
-											<value>${project.version}</value>
+											<value>${scriptVersion}</value>
 										</parameter>
 										<parameter>
 											<name>resPathAdjust</name>
@@ -216,7 +220,7 @@
 						<version>8.7</version>
 					</dependency>
 					<dependency>
-						<groupId>V3</groupId>
+						<groupId>gb.v3</groupId>
 						<artifactId>build-tools</artifactId>
 						<version>1.0-SNAPSHOT</version>
 					</dependency>
@@ -252,7 +256,7 @@
 					<version>3.1.0</version>
 					<dependencies>
 						<dependency>
-							<groupId>V3</groupId>
+							<groupId>gb.v3</groupId>
 							<artifactId>build-tools</artifactId>
 							<version>1.0-SNAPSHOT</version>
 						</dependency>

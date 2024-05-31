@@ -40,17 +40,17 @@ class Script extends Serializable {
 	  this.requires.push(aRequire);
 	}
 	
-	load(scriptText) {
+	async load(scriptText) {
 	  var code;
 	  if (typeof scriptText === "undefined") {
-	    code = GM_getResourceText(this.resName);
+	    code = await GM_getResourceText(this.resName);
 	  } else {
 	    code = scriptText;
 	  }
 	
 	  try {
   	 Object.defineProperty(this, 'content', {
-        value: eval.call(null, code),
+        value: eval(code),
         enumerable:false        
       });
 	    this.loaded = true;
@@ -78,6 +78,7 @@ class Script extends Serializable {
 	  let INCLUDE_PATTERN = /@include\s+(\S+)/;
 	  let EXCLUDE_PATTERN = /@exclude\s+(\S+)/;
 	  let REQUIRE_PATTERN = /@require\s+(\S+)/;
+	  //let LIB_PATTERN =     /@resource\s+(libs_\S+)/;
 	  var name = /@name\s+(\S+)/.exec(text)[1];
 	  var script = new Script(resName, name);
 	
@@ -111,6 +112,7 @@ class Script extends Serializable {
 	  return script;
 	}
 }
+window.Script = Script;
 
 var ScriptManager;
 (function() {
@@ -118,6 +120,7 @@ var ScriptManager;
   function _ScriptManager() {
     this.KEY_SCRIPT_STORE = "SM.SCRIPTS";
     this.KEY_DISABLED = "SM.ENABLED_SCRIPTS";
+    this.KEY_LOCATION_MATCH = "SM.LocationMatched";
     var SCRIPTS_ENABLED_STATE = CFG.get(this.KEY_DISABLED, {});
 
     var _scripts = CACHE.get(this.KEY_SCRIPT_STORE, {});
@@ -128,18 +131,20 @@ var ScriptManager;
 		 * @param {scriptResName :
 		 *          {scriptResName, mimetype, url}} resourceList the list
 		 */
-    this.init = function(resourceList) {
+    this.init = async function(resourceList) {
       for(name in resourceList) {
         if (!name.startsWith("plugin")) {
           continue;
         }
 
         try {
-          var script = Script.parse(name, GM_getResourceText(name));
+          let content = await GM.getResourceText(name);
+          console.log("try to parse", name);
+          let script = Script.parse(name, content);
           script.enabled = SCRIPTS_ENABLED_STATE[script.name] || false;
           _scripts[script.name] = script;
         } catch (e) {
-          LOGGER.error(e);
+          LOGGER.error("error parsing script: ", name, e);
         }
       }
 
@@ -151,9 +156,11 @@ var ScriptManager;
 		 * rule defined in the plugin script
 		 */
     this.getForLocation = function(aUrl) {
-      var allMatched = CACHE.get("SM.LocationMatched", {});
+      let allMatched = CACHE.get(this.KEY_LOCATION_MATCH, {});
+      let url = new URL(aUrl);
+      aUrl = `${url.origin}${url.pathname}`;
       
-      if(!(allMatched[aUrl] instanceof Array)){
+      if(!Array.isArray(allMatched[aUrl])){
       	var matched = [];
 	      _scripts.forEach(function(sname, script) {
 	        if (!script.enabled) {
@@ -168,7 +175,7 @@ var ScriptManager;
 	        }
 	      });
 	      allMatched[aUrl] = matched;
-	      CACHE.set("SM.LocationMatched", allMatched);
+	      CACHE.set(this.KEY_LOCATION_MATCH, allMatched);
       }
       
       var matchedScripts = [];

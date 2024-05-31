@@ -2,10 +2,13 @@ function classSerializer(){	this["_"] = this.constructor.name; return this; }
 function classDeserializer(key, value){
 	if(value instanceof Object && typeof value["_"] != "undefined"){
 		try{
-			var des = Object.create(eval.call(null, value["_"]).prototype);
+			var des = Object.create(eval(value["_"]).prototype);
 			delete value["_"];
 			return Object.assign(des, value);
-		} catch (e) {	return null;	}
+		} catch (e) {	
+      console.log("deserialization with custom type failed - return plain json");
+      return value;	
+    }
  	} else if(value instanceof Object || value instanceof Array){
  		for(let key in value) {
  			if(value[key] == null) return undefined;

@@ -21,7 +21,8 @@ if(!PROVINCES){
 				}
 			}
 			CACHE.set("PL", container);
-			window.eval(String.format('window.PROVINCES = JSON.parse("{}")', JSON.stringify(container)));
+			let codeToParse = `window.PROVINCES = JSON.parse('${JSON.stringify(container)}')`;
+			window.eval(codeToParse);
 			window.top.document.dispatchEvent(new Event("PL.loaded"));
 		});
 	}

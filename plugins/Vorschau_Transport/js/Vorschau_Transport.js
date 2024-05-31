@@ -206,9 +206,10 @@ class TransportUpdatedEvent extends Event{
     /*
      * modifiziere form - ändere action zu vorschau.php?provinz=x/y, damit das script auch nach einem klick auf
      * Vorschau berechnen seine Konfiguration richtig findet.
+     * FIXME: vorschau hat beim spulen einen parameter "spulindex" statt provinz - evtl als anker hinterlegen
      */
     var form = DOM.byTag("form", document)[0];
-    form.action = "vorschau.php?provinz=" + CFG.CURRENT_PROV;
+    form.action = form.action+"#provinz=" + CFG.CURRENT_PROV;
     var isReportMode = DOM.byAttribute('input', 'type', 'submit', form).value == "neue Vorschau";
 
     var table = new VorschauTable(resTable, CFG.CURRENT_PROV, !isReportMode);
