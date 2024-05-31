@@ -1,16 +1,19 @@
-function StorageBackedDict(aStorage, aPrefix = "") {
+function StorageBackedDict(aStorage, aPrefix = false) {
   var _values = {};
   this.storage = aStorage;
-  var _prefix = aPrefix;
-  
+  if (!aPrefix) {
+    throw 'Must provide a prefix for StorageBackedDict';
+  }
+  var _prefix = aPrefix + ':';
+
   function recursiveGet(aKeys, container, aDefault) {
-    if(aKeys.length == 0){
+    if (aKeys.length == 0) {
       return container;
     }
     var currentKey = aKeys.shift();
     var isObject = typeof container[currentKey] === 'object';
     if (typeof container[currentKey] === 'undefined' || container[currentKey] == null) {
-    	container[currentKey] = aKeys.length > 0 ? {} : aDefault;
+      container[currentKey] = aKeys.length > 0 ? {} : aDefault;
     } else if (!isObject && aKeys.length > 0) {
       throw 'Not an object: ' + currentKey;
     }
@@ -21,19 +24,72 @@ function StorageBackedDict(aStorage, aPrefix = "") {
 
     return container[currentKey];
   }
-  
-  function analyseKeys(keyString){
-  	var splitted = prefixedKey(keyString, true);
-  	return {
-  		full : [...splitted],
-  		first : splitted[0],
-  		lastOnly : splitted.pop(),
-  		woLast : [...splitted]
-  	};
+
+  /**
+   * When only prefix is given, find all keys belonging to this dict.
+   * Otherwise return EXACTLY the key if there is a value for it.
+   * If not, empty
+   * 
+   * @returns String[]
+   */
+  function getMatchingFirstLevelKeys(key = _prefix) {
+    let firstPath = analyseKeyPath(key).first;
+    if (firstPath != _prefix) {
+      return typeof _values[firstPath] == "undefined" ? [] : [firstPath];
+    }
+
+    let result = [];
+    Object.keys(_values).forEach(k => {
+      if (k.startsWith(firstPath)) {
+        result.push(k);
+      }
+    });
+    return result;
   }
 
-  function prefixedKey(original, asArray = false){
-    let key = (_prefix.length > 0 && !original.startsWith(_prefix)) ? _prefix+ "." + original : original;
+  class KeyPath {
+    constructor(arr) {
+      this.depth = arr.length;
+      this.full = [...arr];
+      this.first = arr[0];
+      this.lastOnly = arr.pop();
+      this.woLast = [...arr];
+    }
+    
+    resolveToDeepestParent(valueDict, {}){
+      if(this.depth == 1){
+        return valueDict;
+      }
+      
+      return recursiveGet(this.woLast, valueDict, {});
+    }
+  }
+
+  function analyseKeyPath(key) {
+    let keyArray = false;
+
+    switch (key.constructor.name) {
+      case "String":
+        keyArray = prefixedKey(key, true);
+        break;
+
+      case "Array":
+        if (key.length > 0) {
+          key[0] = prefixedKey(key[0]);
+          keyArray = [...key];
+        }
+        break;
+    }
+
+    if (!keyArray) {
+      throw "empty key";
+    }
+
+    return new KeyPath(keyArray);
+  }
+
+  function prefixedKey(original, asArray = false) {
+    let key = original.startsWith(_prefix) ? original : _prefix + original;
     return asArray ? key.split(".") : key;
   }
   /**
@@ -44,7 +100,7 @@ function StorageBackedDict(aStorage, aPrefix = "") {
       throw 'key is undefined';
     }
 
-    var keys = (key instanceof Array) ? {first:key[0], full:key} : analyseKeys(key, true);
+    var keys = analyseKeyPath(key, true);
     key = keys.first;
 
     if (!_values[key] || (JSON.stringify(_values[key]) != this.storage.getItem(key))) {
@@ -54,12 +110,12 @@ function StorageBackedDict(aStorage, aPrefix = "") {
     return recursiveGet(keys.full, _values, aDefault);
   };
 
-  this.startTx = function(key){
+  this.startTx = function(key) {
     this.txKey = prefixedKey(key);
   };
-  
-  this.endTx = function(){
-    if(this.txKey){
+
+  this.endTx = function() {
+    if (this.txKey) {
       this.persist(this.txKey);
       this.txKey = false;
     }
@@ -71,11 +127,11 @@ function StorageBackedDict(aStorage, aPrefix = "") {
     if ((typeof key != "string") || typeof value === "undefined") {
       throw 'invalid key/value combination to save: [' + key + '=' + value + ']';
     }
-    
-    var keys = analyseKeys(key, true);
-    this.get(keys.woLast, {})[keys.lastOnly] = value;
 
-    if(!this.txKey){
+    let keys = analyseKeyPath(key, true);
+    keys.resolveToDeepestParent(_values, {})[keys.lastOnly] = value;
+
+    if (!this.txKey) {
       this.persist(keys.first);
     }
   };
@@ -99,41 +155,40 @@ function StorageBackedDict(aStorage, aPrefix = "") {
     if (typeof toSave === "undefined") {
       throw 'no value for key [' + key + ']';
     }
-    
+
     toSave = JSON.stringify(toSave);
     //ignore non-modifications
-    if(this.storage.getItem(key) != toSave){
-    	this.storage.setItem(key, toSave);
+    if (this.storage.getItem(key) != toSave) {
+      this.storage.setItem(key, toSave);
     } else {
-    	console.log(window.location.pathname, "avoided redundant call to storage.setItem");
+      console.log(window.location.pathname, "avoided redundant call to storage.setItem");
     }
   };
-  
-  this.clear = function(key){
-  	var keys = this.wipeCached(key);
 
-  	if(keys == null){
-  		this.storage.clear();
-  		return;
-  	}
+  this.clear = function(key = _prefix) {
+    getMatchingFirstLevelKeys(key).forEach(found => {
+      let keyPath = this.wipeCached(found);
 
-    //only persist existing object if it was a sub-value that has been deleted
-    if(keys.first != keys.lastOnly){
-    	this.persist(keys.first);
-    } else {
-    	this.storage.removeItem(keys.first);
-    }
+      //only persist existing object if it was a sub-value that has been deleted
+      if (keyPath.first != keyPath.lastOnly) {
+        this.persist(keyPath.first);
+      } else {
+        this.storage.removeItem(keyPath.first);
+      }
+    });
   };
-  
-  this.wipeCached = function(key){
-  	if(typeof key == "undefined" && _prefix.length == 0){
- 			_values = {};
- 			return null;
-  	}
-  	
-  	key = analyseKeys(key || _prefix);
-    this.get(key.full, {}); //update to prevent deletion of more than necessary in large dicts
-    delete recursiveGet(key.woLast, _values, _values)[key.lastOnly];
-    return key;
+
+  this.wipeCached = function(key = _prefix) {
+    if (key == _prefix) {
+      getMatchingFirstLevelKeys(key).forEach(found => {
+        delete _values[found];
+      });
+      return null;
+    }
+
+    let keyPath = analyseKeyPath(key);
+    this.get(keyPath.full, {}); //update to prevent deletion of more than necessary in large dicts
+    delete keyPath.resolveToDeepestParent(_values, _values)[keyPath.lastOnly];
+    return keyPath;
   };
 }
