@@ -58,17 +58,9 @@ function getAsDom(url, postData, responseHandler, addPara) {
   }
 }
 
-function rounded(val) {
-  return Math.floor(val * 100) / 100;
-}
-
-function intOrZeroFromElement(element) {
-  return parseInt(element.innerText.trim()) || 0;
-}
-
-function parseResourceName(aTd) {
-  return aTd.innerText.replace(/\(\d\)/, '').trim();
-}
+function rounded(val) { return Math.floor(val * 100) / 100; }
+function intOrZeroFromElement(element) { return parseInt(element.innerText.trim()) || 0; }
+function parseResourceName(aTd) { return aTd.innerText.replace(/\(\d\)/, '').trim(); }
 
 function htmlLinkCollectionToDict(aLinkList) {
   var result = {};

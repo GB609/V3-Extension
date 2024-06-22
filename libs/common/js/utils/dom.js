@@ -25,8 +25,10 @@ var DOM = {
           val.forEach(function(key, st) {
             ele.style[key] = st;
           });
-        } else {
+        } else if(typeof val === "string"){
           ele.setAttribute(i, val);
+        } else {
+          ele[i] = val;
         }
       });
     }
@@ -38,8 +40,8 @@ var DOM = {
 DOM = new Proxy(DOM, {
   get : function(target, name) {
     if (!(name in target)) {
-      target[name] = function(a, b, c, d, e, f) {
-        return target.elemnt(name, a, b, c, d, e, f);
+      target[name] = function(...allArgs) {
+        return target.elemnt(name, ...allArgs);
       };
     }
     return target[name];

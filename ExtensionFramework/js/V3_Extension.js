@@ -1,6 +1,5 @@
-﻿console.debug(`Running V3_Extension version [${GM.info.script.version}] in`, window.location, 'at document state', document.readyState);
-var isTop = window.self == window.top;
-console.log("is frame:", !isTop);
+﻿var isTop = window.self == window.top;
+console.info(`Running V3_Extension version [${GM.info.script.version}] in ${isTop ? 'TOP' : 'FRAME'}[state=${document.readyState}]:`, window.location);
 
 var OPTIONS = {};
 
@@ -9,19 +8,19 @@ var OPTIONS = {};
 (function() {
 
   function generateResList() {
-    function remapArray(source){
+    function remapArray(source) {
       let result = {};
       source.forEach(entry => { result[entry.name] = entry; });
       return result;
     }
-    
+
     var meta = GM_info;
     var resList = meta.script.resources;
     //compat with violentmonkey
-    if(Array.isArray(resList)){
+    if (Array.isArray(resList)) {
       resList = remapArray(resList);
     }
-    
+
     // for compatibility with USI
     if (!resList) {
       resList = remapArray(meta.script.resources_data);
@@ -40,10 +39,13 @@ var OPTIONS = {};
 
   async function loadActiveScriptsForCurrentWindow() {
     var activeScripts = ScriptManager.getForLocation(location.href);
+    //FIXME: loadedRequires muss auch mit den @require von top-level V3_Extension abgeglichen werden
+    //siehe logger und common, sonst doppelt geladen
+    //eventuell durch check auf resources abgefrühstückt
     var loadedRequires = {};
-    for(const script of activeScripts) {
+    for (const script of activeScripts) {
       try {
-        for(const req of script.requires) {
+        for (const req of script.requires) {
           if (typeof RESOURCES[req] != "undefined" && loadedRequires[req] != true) {
             loadedRequires[req] = true;
             let dep = new Script(req, req);
@@ -96,12 +98,12 @@ var OPTIONS = {};
           popup.show();
         }
 
-        target.appendChild(opts.getElement());
+        target.add(opts);
         var saveButton = DOM.button().addText("Speichern");
         saveButton.addEventListener('click', function() {
           opts.save();
         });
-        target.appendChild(saveButton);
+        target.add(saveButton);
       });
 
       return link;
@@ -111,35 +113,34 @@ var OPTIONS = {};
   }
 
   async function addPluginOptions() {
-    var targetDiv = DOM.div({
-      "style": "font-size:12px; margin-top:10px;"
-    });
-
-    targetDiv.add(DOM.b().addText("Aktive V3 Erweiterungen:")).br();
-
-    let all = ScriptManager.getAll();
-    for(sname of Object.keys(all)){
-      let val = all[sname];
-      var optionLink = await createOptionLink(val);
-      var check = checkOption(ScriptManager.KEY_DISABLED + '.' + sname, optionLink);
-      check.firstChild.addEventListener('change', function() {
-        LOGGER.info(sname + "an-/ausgeschaltet - loesche SM Cache");
-        CACHE.clear(ScriptManager.KEY_LOCATION_MATCH);
-      });
-
-      targetDiv.add(check).br();
+    function cleanCacheOnChange(sname) {
+      LOGGER.info(sname + " an-/ausgeschaltet - loesche SM Cache");
+      CACHE.clear(ScriptManager.KEY_LOCATION_MATCH);
     }
 
-    document.body.add(targetDiv);
+    let all = ScriptManager.getAll();
+    let group = OptionGroup(ScriptManager.KEY_DISABLED, "Aktive V3 Erweiterungen:");
+    group.add(new Style("label{display:block;} h3{margin:5px 0;}"));
+    for (sname of Object.keys(all)) {
+      let val = all[sname];
+      let optionLink = await createOptionLink(val);
+      group.add(CheckOption(sname, optionLink)
+        .autoUpdate(true)
+        .onChange(cleanCacheOnChange.bind(null, sname))
+      );
+    }
+
+    document.body.add(group);
+    document.body.insertBefore(document.body.lastChild, document.body.firstChild);
   }
 
   async function startup() {
-    console.log("checking location:", location);
-    if (location.pathname == "/index.php" 
+    LOGGER.debug("checking location:", location);
+    if (location.pathname == "/index.php"
       || location.pathname == "/") {
       await ScriptManager.init(RESOURCES);
     }
-    
+
     try {
       handleSync();
       await loadActiveScriptsForCurrentWindow();
@@ -150,6 +151,49 @@ var OPTIONS = {};
       LOGGER.error(e);
     }
   }
-  
+
   startup();
 })();
+
+window.listStorage = function(key, dict = window.localStorage) {
+  var KEY_SYM = Symbol.for("KEY");
+
+  if (typeof key == "string") {
+    let resultObjs = window.listStorage(key.split('.'));
+    resultObjs.forEach(targetObj => {
+      Object.keys(targetObj).forEach(k => {
+        console.log(`${targetObj[KEY_SYM]}.${k}`, ":", targetObj[k]);
+      });
+    });
+    return;
+  }
+
+  let parts = key;
+  if(key.length == 0){
+      return [];
+  }
+  let current = parts.shift();
+  if (typeof dict[current] != "undefined") {
+    let nextDict = dict == window.localStorage ? JSON.parse(dict[current]) : dict[current];
+    if (parts.length == 0) {
+      let found = nextDict;
+      found[KEY_SYM] = current;
+      return [found];
+    } else {
+      let resultObjs = window.listStorage(parts, nextDict);
+
+      resultObjs.forEach(res => {
+        res[KEY_SYM] = current + '.' + res[KEY_SYM];
+      });
+      return resultObjs;
+    }
+  } else {
+    let result = [];
+    Object.keys(dict).forEach(k => {
+      if (k.startsWith(current)) {
+        result = result.concat(window.listStorage([k, ...parts], dict));
+      }
+    });
+    return result;
+  }
+}
