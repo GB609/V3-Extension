@@ -1,13 +1,18 @@
 (function() {
-
+  
   class LogEntry {
-    constructor(aLevel, aMessage) {
+    constructor(aLevel, aMessage, ...rest) {
       this.level = LogEntry.aligned(aLevel);
       this.message = aMessage;
+      this.more = rest;
       this.time = new Date();
+      this.url = location.pathname;
     }
     toString() {
-      return this.time.toString() + this.level + this.message.toString();
+      return `[${this.url}] ${this.time.toString()} ${this.level} ${this.message.toString()} ${JSON.stringify(this.more, null, 2)}`;
+    }
+    consoleArgArray(){
+      return [`[${this.url}] ${this.time.toString()} ${this.level}`, this.message, ...this.more];
     }
 
     static aligned(aLevel) {
@@ -22,7 +27,7 @@
     }
   }
 
-  function _LOGGER() {
+  function _LOGGER(entryCache = []) {
     this.LOG_KEY = "LG_LEVELS";
     var LOG_CONTROL = CFG.get(this.LOG_KEY, {
       'info' : true,
@@ -31,59 +36,56 @@
       'error' : true
     });
 
-    var _logs = [];
+    this._logs = entryCache;
     
     function addEntry(aLevel, aMessage) {
       if (LOG_CONTROL[aLevel]) {
-        if (_logs.length > 15) {
-          _logs = [];
+        if (this._logs.length > 30) {
+          this._logs.length = 0;
         }
 
-        _logs.push(new LogEntry(aLevel, aMessage));
+        this._logs.push(new LogEntry(aLevel, aMessage));
       }
     }
 
     this.info = function(...objects) {
-      addEntry("info", objects);
+      addEntry.call(this, "info", objects);
     };
 
     this.warn = function(...objects) {
-      addEntry("warn", objects);
+      addEntry.call(this, "warn", objects);
     };
 
     this.error = function(...objects) {
-      addEntry("error", objects);
-      console.log(window.location.pathname, '[error]:', ...objects);
+      addEntry.call(this, "error", objects);
     };
 
     this.debug = function(...objects) {
-      addEntry("debug", objects);
-      console.log(...objects);
+      addEntry.call(this, "debug", objects);
     };
 
     this.printToConsole = function() {
       try {
-        _logs.forEach(function(log) {
-          console.log(log.toString());
+        this._logs.forEach(function(log) {
+          console[log.level](...log.consoleArgArray());
         });
       } catch (e) {
-        console.log(e);
+        console.error(e);
       }
     };
   }
 
 if (window.self == window.top) {
-    console.log(window.location.href, "initiating LOGGER");
+    console.info(window.location.href, "initiating LOGGER");
     LOGGER = new _LOGGER();
     window.LOGGER = LOGGER;
-  } else if(window.top.LOGGER) {
-    console.log(window.location.href, "picking up logger from top");
-    LOGGER = window.top.LOGGER;
+  } else if(window.top.LOGGER && window.top != window.self) {
+    console.debug(window.location.href, "picking up logger from top");
+    LOGGER = new _LOGGER(window.top.LOGGER._logs);
     window.LOGGER = LOGGER;
   } else {
-    console.log("no logger on top and top is not first!");
+    console.error("no logger on top and top was not first!");
   }
-  console.log(LOGGER, window.LOGGER);
 })();
 
 window.addEventListener('error', function(e) {

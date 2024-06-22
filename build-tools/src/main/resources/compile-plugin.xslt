@@ -25,6 +25,7 @@
 // @grant GM_getResourceText
 // @grant GM.getResourceText
 // @grant GM.getResourceUrl
+// @run-at document-idle
 // ==/UserScript==
 </xsl:variable>
 

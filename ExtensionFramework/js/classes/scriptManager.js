@@ -56,6 +56,7 @@ class Script extends Serializable {
 	    this.loaded = true;
 	  } catch (e) {
 	    LOGGER.error(e);
+	    console.log("PROBLEM at", this.name, this.code);
 	  }
 	}
 	unLoad() {
