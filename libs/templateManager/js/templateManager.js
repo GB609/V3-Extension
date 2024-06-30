@@ -5,8 +5,10 @@ window.TEMPLATE = function(){
 	   */
 	  asText : function(tplName) {
 	    var templateText = null;
+	    let prefix = unsafeWindow.PLUGIN_PREFIX + (unsafeWindow.PLUGIN_PREFIX.length > 0 ? '/' : '')
+	    tplName = "tpl_" + prefix + tplName;
 	    try {
-	      templateText = GM_getResourceText("tpl_" + tplName);
+	      templateText = GM_getResourceText(tplName);
 	      if(typeof templateText === "undefined" || templateText == null){
 	        throw "Kein Template mit Namen ["+tplName+"] gefunden";
 	      }
@@ -15,7 +17,6 @@ window.TEMPLATE = function(){
 	      LOGGER.error(error);
 	      throw error;
 	    }
-	    return tplName;
 	  },
 	  
 	  asDom : function(tplName, containerAttributes){

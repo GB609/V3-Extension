@@ -31,6 +31,7 @@ class Plugin {
     if (GM_info.script.name == this.name || forceExecution) {
       // it's running standalone
       try {
+        unsafeWindow.PLUGIN_PREFIX = this.name;
         this.execute();
         this.registerEventListener();
         this.postListener();
@@ -38,6 +39,8 @@ class Plugin {
         return true;
       } catch (e) {
         console.log('Fehler beim ausfuehren von:', this.name, e);
+      } finally {
+        unsafeWindow.PLUGIN_PREFIX = '';
       }
     } else {
       return this;

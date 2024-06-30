@@ -1,4 +1,5 @@
 var BASE_URL = "http://wolficotl.bplaced.net/v3/";
+unsafeWindow.PLUGIN_PREFIX = '';
 /**
  * @typedef {Object} Script
  */
@@ -48,6 +49,9 @@ class Script extends Serializable {
 	    code = scriptText;
 	  }
 	
+    unsafeWindow.PLUGIN_PREFIX = this.name || '';
+    code += "\n//# sourceURL="+this.name+'.js'
+	
 	  try {
   	 Object.defineProperty(this, 'content', {
         value: eval(code),
@@ -55,9 +59,12 @@ class Script extends Serializable {
       });
 	    this.loaded = true;
 	  } catch (e) {
+	 	console.error(e);
+	    console.log("PROBLEM at", this.name, this.code || scriptText);
 	    LOGGER.error(e);
-	    console.log("PROBLEM at", this.name, this.code);
-	  }
+	  } finally {
+      unsafeWindow.PLUGIN_PREFIX = '';
+    }
 	}
 	unLoad() {
 	  delete this.content;
