@@ -1,49 +1,65 @@
 var DOM = {
-  byId : function(aID, source) {
+  byId: function(aID, source) {
     if (source && (source.ownerDocument || source.nodeType == document.DOCUMENT_NODE)) {
       return (source.ownerDocument || source).getElementById(aID);
     }
     return document.getElementById(aID);
   },
 
-  byTag : function(tag, source) {
-  	return (source || document).getElementsByTagName(tag);
-  },
+  byTag: function(tag, source = document) { return source.getElementsByTagName(tag); },
 
-  byAttribute : function(tag, key, value, source) {
+  byAttribute: function(tag, key, value, source = document) {
     let xpath = String.format('//{}[@{}="{}"]', tag, key, value);
     let evalSource = source.ownerDocument || source;
-    return evalSource.evaluate(xpath, (source || document), null, XPathResult.ANY_TYPE, null).iterateNext();
+    return evalSource.evaluate(xpath, source, null, XPathResult.ANY_TYPE, null).iterateNext();
   },
 
-  elemnt : function(type, attribs, targetDoc) {
-    var ele = (targetDoc || document).createElement(type);
+  elemnt: function(type, attribs, targetDoc = document) {
+    var ele = targetDoc.createElement(type);
+    return this.applyAttributes(ele, attribs);
+  },
 
-    if (attribs) {
-      attribs.forEach(function(i, val) {
+  applyAttributes: function(element, attributes = false) {
+    if (attributes) {
+      attributes.forEach(function(i, val) {
         if (i == 'style' && typeof val === 'object') {
           val.forEach(function(key, st) {
-            ele.style[key] = st;
+            element.style[key] = st;
           });
-        } else if(typeof val === "string"){
-          ele.setAttribute(i, val);
+        } else if (typeof val === "string") {
+          element.setAttribute(i, val);
         } else {
-          ele[i] = val;
+          element[i] = val;
         }
       });
     }
-
-    return ele;
+    return element;
   },
+
+  collectionAsMap(collection) {
+    var result = {};
+    for (var i = 0; i < collection.length; i++) {
+      let ele = collection[i];
+      let key = ele.getAttribute("id") || ele.innerText;
+      result[key] = ele;
+    }
+    return result;
+  }
 };
 // wrap in proxy to allow to dynamically create factory methods for dom elements
+// Factory methods can also directly be added to widgets 
 DOM = new Proxy(DOM, {
-  get : function(target, name) {
+  get: function(target, name) {
     if (!(name in target)) {
-      target[name] = function(...allArgs) {
-        return target.elemnt(name, ...allArgs);
+      target[name] = function(attribs = {}, doc = document) {
+        if (attribs.nodeName == "#document") {
+          return target.elemnt(name, {}, attribs);
+        }
+        return target.elemnt(name, attribs, doc);
       };
+      target[name][Style.ELEMENT_NAME] = name;
     }
     return target[name];
   }
 });
+unsafeWindow.DOM = DOM;

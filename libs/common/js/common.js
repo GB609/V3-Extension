@@ -1,5 +1,3 @@
-//console.log("### STARTING PAGELOAD "+window.location.pathname+" ###");
-
 var V3_URL_S = "https://v3.verbranntezone.ch/";
 var V3_URL = "http://v3.verbranntezone.ch/";
 
@@ -62,40 +60,6 @@ function rounded(val) { return Math.floor(val * 100) / 100; }
 function intOrZeroFromElement(element) { return parseInt(element.innerText.trim()) || 0; }
 function parseResourceName(aTd) { return aTd.innerText.replace(/\(\d\)/, '').trim(); }
 
-function htmlLinkCollectionToDict(aLinkList) {
-  var result = {};
-  for (var i = 0; i < aLinkList.length; i++) {
-    result[aLinkList[i].innerText] = aLinkList[i];
-  }
-  return result;
-}
-
-function checkOption(storageKey, text, className) {
-  var input = DOM.input({
-    "type" : "checkbox"
-  });
-  input.storeKey = storageKey;
-  input.checked = CFG.get(storageKey, false);
-
-  input.onchange = function() {
-    var newValue = this.checked;
-    CFG.set(this.storeKey, newValue);
-  };
-
-  if (!className) {
-    className = "";
-  }
-  var span = DOM.span({
-    "class" : className
-  }).add(input).addText(" ");
-  if (typeof text === "string") {
-    span.addText(text);
-  } else {
-    span.add(text);
-  }
-  return span;
-}
-
 function populateDropDown(target, data, transform, defaultOption = false) {
 	let elements = data();
 	if(target.data == elements) return;
@@ -117,17 +81,6 @@ function populateDropDown(target, data, transform, defaultOption = false) {
   	let entry = transform(val); 
   	target.add(DOM.option({value:entry.value}).addText(entry.label));
   });
-}
-
-function injectCss(targetElement, cssSource) {
-  var style = DOM.style({
-    "type" : "text/css"
-  }).addText(cssSource);
-  if (targetElement.firstChild) {
-    targetElement.insertBefore(style, targetElement.firstChild);
-  } else {
-    targetElement.add(style);
-  }
 }
 
 function toggleVisibility(target) {
@@ -184,9 +137,7 @@ var CFG;
      * in case the an already stored value has been updated directly (object or array types). Will re-push the value
      * associated with the given key to localStorage
      */
-    this.update = function(key) {
-      this.persist(key);
-    };
+    this.update = function(key) { this.persist(key); };
 
   }
   _CFG.prototype = new StorageBackedDict(window.localStorage, "CFG");
@@ -218,6 +169,8 @@ var CACHE;
 function isLoggedInVZ() {
   return null != document.getElementById("vztime");
 }
+
+// #include utils/logger
 
 // #include v3/provinceList
 

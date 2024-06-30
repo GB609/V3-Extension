@@ -1,6 +1,6 @@
 (function() {
 
-	function Link(aTitle, aAltTitle, aFav, aUrl) {
+  function Link(aTitle, aAltTitle, aFav, aUrl) {
     this.title = aTitle;
     this.altTitle = aAltTitle;
     this.isFav = aFav;
@@ -14,7 +14,7 @@
 
       this._anchor = DOM.li();
       var ele = DOM.a({
-        "target" : "main"
+        "target": "main"
       });
       if (this._url != null) {
         ele.href = this._url.replace("{{coord}}", coord);
@@ -60,7 +60,7 @@
       this._data[aLink.innerText].updateLink(aLink);
     };
 
-    for(var i = 0; i < linkArr.length; i++) {
+    for (var i = 0; i < linkArr.length; i++) {
       var newLink = linkArr[i];
       this._data[newLink] = newLink;
     }
@@ -68,10 +68,10 @@
     this.generateLinkContainer = function() {
       if (this.container == null) {
         this.container = DOM.ul({
-          "style" : "margin:0px;padding:0px;margin-left:25px;display:none;"
+          "style": "margin:0px;padding:0px;margin-left:25px;display:none;"
         });
       }
-      for(var i = 0; i < this._links.length; i++) {
+      for (var i = 0; i < this._links.length; i++) {
         var link = this._links[i];
         if (!link.isFav && !link.isContained) {
           this.container.appendChild(link.generateAnchorForProvinz(CFG.CURRENT_PROV));
@@ -86,84 +86,86 @@
     };
 
   }
-  
-  var OPTIONS = OptionGroup('LK', "Provinzmenue", 
-  		CheckOption('autoExpand', 'Gebaeudelinks ausklappen', false), 
-  		TextOption('importLinksLocation', 'Menueaufbau importieren', '', ValueType.STRING));
-  
-  this.getOptions = function(){
-  	return OPTIONS;
-  }
+
+  var OPTIONS = OptionGroup('PMEN', "Optionen: Provinzmenü",
+    DOM.p().add("Organisiert das Provinzmenü (Navigation linke Seite) um.").br().add(
+      "Bringt außerdem alles mit ausklappbaren Untermenüs auf einer Seite zusammen um überflüssige vor/zurück Navigation zu reduzieren."
+    ),
+    CheckOption('autoExpand', 'Gebäudelinks ausklappen', false)
+    //,TextOption('importLinksLocation', 'Menüaufbau importieren', '', ValueType.STRING)
+  );
 
   var MENU = [
-      {
-        "name" : "Provinzdaten",
-        "request" : false,
-        "underFav" : false,
-        "links" : new LinkSet([new Link("Provinz Info", null, false, "provinzinfo.php?provinz={{coord}}"),
-            new Link("Aktuelles", null, true, "aktuelles.php"), new Link("Vorschau", null, true, "vorschau.php?provinz={{coord}}"),
-            new Link("Provinzlager", null, false, "lager.php?p1={{coord}}"),
-            new Link("Geb\u00e4udeliste", null, false, "bebauung.php?p1={{coord}}")])
-      },
-      {
-        "name" : "Zivil",
-        "request" : true,
-        "underFav" : false,
-        "links" : new LinkSet([new Link("Einstellungen", null, true, "einstellungen.php?provinz={{coord}}"),
-            new Link("Bodensch\u00e4tze", null, false, "bodenschaetze.php?provinz={{coord}}"),
-            new Link("Geldtransfer", "Mips -> Staatskonto", false, null),
-            new Link("Provinz\u00fcbergabe", null, false, "provinzuebergabe.php?provinz={{coord}}"),
-            new Link("umbenennen", null, false, "rename.php?provinz={{coord}}")])
-      },
+    {
+      "name": "Provinzdaten",
+      "request": false,
+      "underFav": false,
+      "links": new LinkSet([new Link("Provinz Info", null, false, "provinzinfo.php?provinz={{coord}}"),
+      new Link("Aktuelles", null, true, "aktuelles.php"), new Link("Vorschau", null, true, "vorschau.php?provinz={{coord}}"),
+      new Link("Provinzlager", null, false, "lager.php?p1={{coord}}"),
+      new Link("Geb\u00e4udeliste", null, false, "bebauung.php?p1={{coord}}")])
+    },
+    {
+      "name": "Zivil",
+      "request": true,
+      "underFav": false,
+      "links": new LinkSet([new Link("Einstellungen", null, true, "einstellungen.php?provinz={{coord}}"),
+      new Link("Bodensch\u00e4tze", null, false, "bodenschaetze.php?provinz={{coord}}"),
+      new Link("Geldtransfer", "Mips -> Staatskonto", false, null),
+      new Link("Provinz\u00fcbergabe", null, false, "provinzuebergabe.php?provinz={{coord}}"),
+      new Link("umbenennen", null, false, "rename.php?provinz={{coord}}")])
+    },
 
-      {
-        "name" : "Geb\u00e4ude",
-        "request" : true,
-        "underFav" : true,
-        "links" : new LinkSet([])
-      },
+    {
+      "name": "Geb\u00e4ude",
+      "request": true,
+      "underFav": true,
+      "links": new LinkSet([])
+    },
 
-      {
-        "name" : "Arbeit",
-        "request" : false,
-        "underFav" : false,
-        "links" : new LinkSet([new Link("Spezielle Bauten", null, false, "spezbauen.php?provinz={{coord}}"),
-            new Link("Bew\u00e4ssern", null, true, "bewaessern.php?provinz={{coord}}"),
-            new Link("Wegsystem", null, true, "wegbau.php?provinz={{coord}}"),
-            new Link("Tiere freilassen", null, false, "tierefreilassen.php?provinz={{coord}}")])
-      },
+    {
+      "name": "Arbeit",
+      "request": false,
+      "underFav": false,
+      "links": new LinkSet([new Link("Spezielle Bauten", null, false, "spezbauen.php?provinz={{coord}}"),
+      new Link("Bew\u00e4ssern", null, true, "bewaessern.php?provinz={{coord}}"),
+      new Link("Wegsystem", null, true, "wegbau.php?provinz={{coord}}"),
+      new Link("Tiere freilassen", null, false, "tierefreilassen.php?provinz={{coord}}")])
+    },
 
-      {
-        "name" : "Handel",
-        "request" : true,
-        "underFav" : false,
-        "links" : new LinkSet([new Link("Transport", null, true, null), new Link("Marktst\u00e4nde", null, true, null),
-            new Link("Markt", null, true, null)])
-      },
+    {
+      "name": "Handel",
+      "request": true,
+      "underFav": false,
+      "links": new LinkSet([new Link("Transport", null, true, null), new Link("Marktst\u00e4nde", null, true, null),
+      new Link("Markt", null, true, null)])
+    },
 
-      {
-        "name" : "Milit\u00e4r",
-        "request" : true,
-        "underFav" : false,
-        "links" : new LinkSet([new Link("Rekruten ausbilden", null, true, null), new Link("Rekruten entlassen", null, false, null),
-            new Link("Routen\u00fcbersicht", "M. Routen", true, null)])
-      }];
+    {
+      "name": "Milit\u00e4r",
+      "request": true,
+      "underFav": false,
+      "links": new LinkSet([new Link("Rekruten ausbilden", null, true, null), new Link("Rekruten entlassen", null, false, null),
+      new Link("Routen\u00fcbersicht", "M. Routen", true, null)])
+    }];
 
   var sourceDiv = DOM.byTag("div", document)[0];
   var FAV_UL = DOM.ul({
-    "style" : "margin:0px;padding:0px;margin-left:25px;display:block;"
+    "style": "margin:0px;padding:0px;margin-left:25px;display:block;"
   });
 
   function buildMenu() {
+    document.head.add(new Style(TEMPLATE.asText('shortLinkTableStyle')));
+
     var menuLinks = htmlLinkCollectionToDict(DOM.byTag("a", sourceDiv));
 
     var targetDiv = DOM.div({
-      "class" : sourceDiv.getAttribute("class")
+      "class": sourceDiv.getAttribute("class")
     });
 
     var favorites = DOM.a({
-      "href" : "javascript:;",
-      "style" : "display:block;"
+      "href": "javascript:;",
+      "style": "display:block;"
     }).addText("Favoriten");
     favorites.addEventListener('click', function() {
       toggleVisibility(this.nextElementSibling);
@@ -178,16 +180,19 @@
     provAnsicht.style.display = "block";
 
     var REST_MARKER = DOM.span({
-      "style" : "display:block;",
-      "class" : "aSpacing"
+      "style": "display:block;",
+      "class": "aSpacing"
     }).addText("Rest:");
     targetDiv.appendChild(REST_MARKER);
 
-    injectCss(targetDiv, ".aSpacing {margin:0;margin-top:10px;display:inline-block;} li {margin: 5px 0;}");
+    targetDiv.addBefore(
+      new Style(".aSpacing {margin:0;margin-top:10px;display:inline-block;} li {margin: 5px 0;}"), 
+      targetDiv.firstChild
+    );
 
     sourceDiv.style.display = "none";
     sourceDiv.parentElement.insertBefore(targetDiv, sourceDiv);
-    for(var menuIdx = 0; menuIdx < MENU.length; menuIdx++) {
+    for (var menuIdx = 0; menuIdx < MENU.length; menuIdx++) {
       var setting = MENU[menuIdx];
       var linkSet = setting.links.getAll();
 
@@ -222,7 +227,7 @@
         getAsDom(origLink.href, null, function(doc, text, aLink) {
           var subLinks = DOM.byTag("a", DOM.byTag("div", doc)[0]);
           try {
-            for(var subIdx = 0; subIdx < subLinks.length; subIdx++) {
+            for (var subIdx = 0; subIdx < subLinks.length; subIdx++) {
               // "zurück" links ausfiltern
               if (subLinks[subIdx].href.search("open.php") > 0) {
                 continue;
@@ -243,6 +248,6 @@
     sourceDiv.parentElement.removeChild(sourceDiv);
   };
 
-  let plugin_Menu = new Plugin("ProvinzMenu", {options:OPTIONS, execute:buildMenu});
+  let plugin_Menu = new Plugin("Provinzmenü", { options: OPTIONS, execute: buildMenu });
   return plugin_Menu.run();
 })();

@@ -110,7 +110,7 @@
     </xsl:function>
     
     <xsl:function name="gb:buildResources">
-    	<xsl:variable name="resList" select="tokenize(gb:loadTextFile('/target/tmp/resources.list'), '\r?\n')" />
+    	<xsl:variable name="resList" select="tokenize(gb:loadTextFile('/resources.list'), '\r?\n')" />
     	<xsl:for-each select="$resList">
     		<xsl:if test="string-length() &gt; 0">
 	    		<xsl:value-of select="concat($nl, '// @resource ', gb:resourceNameFromFile(.), ' ', $resPathAdjust, 'res/', string(.))" />

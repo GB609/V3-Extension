@@ -1,18 +1,19 @@
 (function() {
-  
+
   class LogEntry {
     constructor(aLevel, aMessage, ...rest) {
-      this.level = LogEntry.aligned(aLevel);
+      this.level = aLevel;
+      this.levelFormatted = LogEntry.aligned(aLevel);
       this.message = aMessage;
       this.more = rest;
       this.time = new Date();
       this.url = location.pathname;
     }
     toString() {
-      return `[${this.url}] ${this.time.toString()} ${this.level} ${this.message.toString()} ${JSON.stringify(this.more, null, 2)}`;
+      return `[${this.url}] ${this.time.toString()} ${this.levelFormatted} ${this.message.toString()} ${JSON.stringify(this.more, null, 2)}`;
     }
-    consoleArgArray(){
-      return [`[${this.url}] ${this.time.toString()} ${this.level}`, this.message, ...this.more];
+    consoleArgArray() {
+      return [`[${this.url}] ${this.time.toString()} ${this.levelFormatted}`, this.message, ...this.more];
     }
 
     static aligned(aLevel) {
@@ -29,19 +30,25 @@
 
   function _LOGGER(entryCache = []) {
     this.LOG_KEY = "LG_LEVELS";
-    var LOG_CONTROL = CFG.get(this.LOG_KEY, {
-      'info' : true,
-      'warn' : true,
-      'debug' : true,
-      'error' : true
-    });
+    this.OPTIONS = OptionGroup(this.LOG_KEY, 'Logging',
+      DOM.p()
+        .add("Bestimmt, wieviel und detailliert Fehlersuche-Information auf dem Rechner mitgeschnitten wird.").br()
+        .add("Die meisten Meldungen werden standardmäßig nicht in der Entwicklerkonsole erscheinen sondern nur für Fehlerberichte zwischengespeichert, falls die Option dazu nicht aktviert ist."),
+      CheckOption('info', 'Informationen', true),
+      CheckOption('warn', 'Warnmeldungen', true),
+      CheckOption('error', 'Ernsthafte Fehler', true),
+      CheckOption('debug', 'Höchster Detailgrad', true),
+      DOM.br,
+      CheckOption('immediateOutput', 'Ausgabe auch auf Entwicklerkonsole', false)
+    );
 
     this._logs = entryCache;
-    
+
     function addEntry(aLevel, aMessage) {
-      if (LOG_CONTROL[aLevel]) {
-        if (this._logs.length > 30) {
+      if (this.OPTIONS[aLevel].value) {
+        if (this._logs.length > 50) {
           this._logs.length = 0;
+          this._logs.push(new LogEntry('debug', 'Dropped old log entries'))
         }
 
         this._logs.push(new LogEntry(aLevel, aMessage));
@@ -75,11 +82,11 @@
     };
   }
 
-if (window.self == window.top) {
+  if (window.self == window.top) {
     console.info(window.location.href, "initiating LOGGER");
     LOGGER = new _LOGGER();
     window.LOGGER = LOGGER;
-  } else if(window.top.LOGGER && window.top != window.self) {
+  } else if (window.top.LOGGER && window.top != window.self) {
     console.debug(window.location.href, "picking up logger from top");
     LOGGER = new _LOGGER(window.top.LOGGER._logs);
     window.LOGGER = LOGGER;
