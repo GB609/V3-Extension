@@ -2,17 +2,74 @@ function interfaced(text = 'Not implemented.') { throw text; }
 function NOOP() { }
 function lazyGet(obj, prop, factory, canChange = false) {
   let data = factory();
-  Object.defineProperty(obj, prop, { value: data, writable: canChange });
+  Object.defineProperty(obj, prop, { configurable: true, value: data, writable: canChange });
   return data;
 }
 
 class Widget {
-  static #keepProperty(me, p) {
+  static PROXY_TARGET = Symbol.for("HTML_PROXY_TARGET");
+  static PROXY_INSTANCE = Symbol.for("HTML_PROXY_INSTANCE")
+
+  static #keepProperty(me, innerPrio, p) {
     try {
-      return typeof me[p] != "undefined" || typeof me.element[p] === "undefined";
+      return typeof me[p] != "undefined" || typeof innerPrio[p] === "undefined";
     } catch (e) {
       return true;
     }
+  }
+  static #fixThisIfFunc(me, func, returnProxyOnSelf = false) {
+    if (typeof func != "function") {
+      return func;
+    }
+
+    if (returnProxyOnSelf === false) {
+      return func.bind(me);
+    }
+
+    return function(...parameters) {
+      let result = func.call(me, ...parameters);
+      return (result == me) ? returnProxyOnSelf : result;
+    }
+  }
+
+  static delegateProperties(externalReceiver, innerPrio) {
+    if (typeof externalReceiver[Widget.PROXY_INSTANCE] != "undefined") {
+      return externalReceiver[Widget.PROXY_INSTANCE];
+    }
+
+    let proxy = new Proxy(externalReceiver, {
+      get(t, p) {
+        if (p == Widget.PROXY_TARGET) return t;
+
+        if (Widget.#keepProperty(t, innerPrio, p)) {
+          return Widget.#fixThisIfFunc(t, t[p], proxy);
+        }
+        return Widget.#fixThisIfFunc(t.element, innerPrio[p]);
+      },
+      set(t, p, v) {
+        if (Widget.#keepProperty(t, innerPrio, p)) {
+          t[p] = v;
+        } else {
+          innerPrio[p] = v;
+        }
+        return true
+      }
+    });
+    return externalReceiver[Widget.PROXY_INSTANCE] = proxy;
+  }
+
+  /**
+   * Expects the given argument to be the FIRST parent to check.
+   */
+  static findNearestParentOfType(type, aWidget, actionOnFound = (p)=>{return p;}) {
+    let p = aWidget;
+    while (typeof p != "undefined") {
+      if (p instanceof type) {
+        return actionOnFound(p);
+      }
+      p = p.parent;
+    }
+    return false;
   }
 
   constructor(aLabel = false) {
@@ -21,21 +78,23 @@ class Widget {
     this.beforeAdd = NOOP;
   }
 
+  attributes(obj) { return Object.assign(this.htmlProxy(), obj); }
   inDoc(doc) { return this.targetDoc = doc, this; }
 
-  insertInto(htmlElement) {
-    this.parent = htmlElement.widget || htmlElement;
+  insertInto(htmlElement, insertBeforeSibling) {
+    this.parent = this.widget || htmlElement.widget || htmlElement;
     let element = this.element;
     element.widget = this;
-    htmlElement.add(element);
+    htmlElement.addBefore(insertBeforeSibling, element);
+
     return this;
   }
 
   get element() {
     interfaced();
   }
-  
-  set element(ele){
+
+  set element(ele) {
     Object.defineProperty(this, "element", {
       configurable: true,
       writable: true,
@@ -43,27 +102,11 @@ class Widget {
     });
   }
 
-  htmlProxy() {
-    return new Proxy(this, {
-      get(t, p) {
-        if (Widget.#keepProperty(t, p)) {
-          return t[p];
-        }
-        let inner = t.element[p];
-        if (typeof inner == "function") {
-          return inner.bind(t.element);
-        }
-        return inner;
-      },
-      set(t, p, v) {
-        if (Widget.#keepProperty(t, p)) {
-          t[p] = v;
-        } else {
-          t.element[p] = v;
-        }
-        return true
-      }
-    });
+  htmlProxy(create = true) {
+    if (create) {
+      return Widget.delegateProperties(this, this.element);
+    }
+    return this[Widget.PROXY_INSTANCE] || this;
   }
 }
 
@@ -77,7 +120,7 @@ class Composite extends Widget {
     rest.forEach(this.add, this);
   }
 
-  useContainer(tag = 'div') { this.containerTag = tag; }
+  useContainer(tag = 'div') { return this.containerTag = tag, this; }
 
   add(child) {
     if (this.#children.includes(child)) {
@@ -138,14 +181,37 @@ class BorderedGroup extends Composite {
 }
 
 class Style extends Widget {
+  static ELEMENT_NAME = Symbol.for("CSS_ELMNT_NAME");
+  
   constructor(content) {
     super('CSS');
     this.element = DOM.style({ type: "text/css" });
-    this.element.innerText = content;
+    this.element.setAttribute("style", "display: none !important");
+    this.addRule(content);
   }
 
-  addRule(more) {
-    this.element.innerText += '\n' + more;
+  addRule(more = '') {
+    if(more.isEmpty())
+      return this
+      
+    this.element.textContent += more+'\n';
+    return this;
+  }
+  
+  /**
+   * Uses meta-definitions on Widget subclasses to get correct html element tag names
+   */
+  ruleFor(type, addRestriction = '', body = ''){
+    if(body.length == 0 && addRestriction.length > 0){
+      body = addRestriction;
+      addRestriction = '';
+    }
+    
+    if(typeof type[Style.ELEMENT_NAME] == "undefined"){
+      return this;
+    }
+    
+    return this.addRule(`${type[Style.ELEMENT_NAME]}${addRestriction} {${body}}`);
   }
 }
 
@@ -154,8 +220,10 @@ class Style extends Widget {
  */
 class OptionWidget extends Widget {
 
+  #parent;
   #parentKey = "";
   #ownKey = "";
+  #forceAutoUpdateMode;
 
   constructor(aLabel, keyPath = false, defaultValue = '', handler = ValueType.STRING) {
     super(aLabel);
@@ -181,7 +249,7 @@ class OptionWidget extends Widget {
   }
 
   // ----- Builder methods for configuration -----
-  autoUpdate(aAutoUpdate = true) { return this.autoUpdateCfg = aAutoUpdate, this; }
+  autoUpdate(aAutoUpdate = true) { return this.#forceAutoUpdateMode = aAutoUpdate, this; }
   onChange(callback = NOOP) { return this.changeListener = callback, this; }
 
   // ----- API for Widget -----
@@ -190,19 +258,18 @@ class OptionWidget extends Widget {
   }
 
   // ----- Option functionality related to config setting and value updates -----
-
+  get parent() { return this.#parent; }
   set parent(aParent) {
+    this.#parent = aParent;
     this.#parentKey = "";
-    let p = aParent;
-    while (typeof p != "undefined") {
-      if (p instanceof OptionGroup) {
-        this.#parentKey = p.key + '.';
-        break;
-      }
-      p = p.parent;
+    let p = Widget.findNearestParentOfType(OptionGroup, aParent);
+    if (p !== false) {
+      this.#parentKey = p.key + '.';
+      p[this.#ownKey] = this;
     }
     this.key = this.#parentKey + this.#ownKey;
-    this.value = CFG.get(this.key, this.current);
+    this.value = this.current = CFG.get(this.key, this.default);
+    this.#updateDisplay();
   }
 
   trackChanges(htmlElement, prop = 'value', type = 'change') {
@@ -211,32 +278,50 @@ class OptionWidget extends Widget {
 
   /** change temporary stored value */
   updateCurrent(aNewValue) {
-    this.current = this.typeHandler(aNewValue);
-    if (this.autoUpdateCfg) {
-      this.save();
+    aNewValue = this.typeHandler(aNewValue);
+    if (this.current == aNewValue) {
+      return;
     }
+    
+    this.current = aNewValue;
+
+    if (false === this.changeListener(this.current)) {
+      return this.revert();
+    }
+
+    if (this.autoUpdateConfigured) {
+      return this.save();
+    }
+
     this.#updateDisplay();
   }
 
   /** handles programmatic change of value */
-  #updateDisplay() {
-    if (this.#isChanged()) {
+  #updateDisplay(markChanged = this.#isChanged()) {
+    let isDifferent = this.input.value != this.current;
+    if(isDifferent){
+      this.input.value = this.current
+    }
+    
+    if(markChanged){
       this.element.style.fontWeight = 'bold';
-      this.input.value(this.current);
-      this.changeListener(this.current);
+      this.element.setAttribute("changeIndicator", "true");
     } else {
       this.element.style.fontWeight = 'normal';
+      this.element.removeAttribute("changeIndicator");
     }
   }
 
   /** save temporary value to config */
-  save() {
+  save(aNewValue) {
     if (typeof aNewValue !== 'undefined') {
       // do not use update current to allow direct usage of options in plugins for read/write
       this.current = this.typeHandler(aNewValue);
     }
     CFG.set(this.key, this.current);
     this.value = this.current;
+    
+    this.#updateDisplay();
   }
 
   /** undo change of temporary value, back to last value in CFG */
@@ -246,23 +331,31 @@ class OptionWidget extends Widget {
   }
 
   #isChanged() { return this.value != this.current; }
+  
+  get autoUpdateConfigured(){
+    if(typeof this.#forceAutoUpdateMode == "boolean"){
+      return this.#forceAutoUpdateMode;
+    }
+    return Widget.findNearestParentOfType(OptionGroup, this.parent, (p)=>{
+      return p.allowsAutosave();
+    });
+  }
 
   // ----- DOM element related which will be specific to concrete subtype -----
-  generateElement() {
-    return DOM.div({}, this.targetDoc).add(this.label).addText(': ' + this.value);
-  }
+  generateElement() { return DOM.div({}, this.targetDoc).add(this.label).addText(': ' + this.value); }
 }
 
+//FIXME: input-spezifische Attribute durch-proxyen
 class LabeledText extends Widget {
   constructor(label, attributes = {}) {
     super(label);
-    this.attributes = attributes;
+    //this.attributes = attributes;
   }
 
   get element() {
     return lazyGet(this, "element", () => {
       this.input = DOM.input({}, this.targetDoc)
-      return DOM.span(this.attributes, this.targetDoc).add(this.label + ": ", this.input);
+      return DOM.label(this.attributes, this.targetDoc).add(this.label + ": ", this.input);
     });
   }
 
@@ -271,15 +364,18 @@ class LabeledText extends Widget {
 }
 
 class LabeledCheckbox extends Widget {
+  static [Style.ELEMENT_NAME] = "label";
+  
   constructor(label, attributes = {}) {
     super(label);
-    this.attributes = attributes;
+    //    this.attributes = attributes;
   }
 
   get element() {
     return lazyGet(this, "element", () => {
       this.input = DOM.input({ type: 'checkbox' }, this.targetDoc);
-      return DOM.label(this.attributes, this.targetDoc).add(this.input, " ", this.label);
+      let label = DOM.label(this.attributes, this.targetDoc).add(this.input, " ", this.label);
+      return Widget.delegateProperties(label, this.input);
     });
   }
 
@@ -318,7 +414,7 @@ class LabeledRadioGroup extends Composite {
   constructor(groupName, title, attributes = {}, ...entries) {
     super(title);
     this.groupName = groupName;
-    this.attributes = attributes;
+    //    this.attributes = attributes;
 
     if (typeof this.label != "undefined") {
       super.add((doc) => {
@@ -384,7 +480,7 @@ class LabeledDropDown extends Composite {
   constructor(label, attributes = {}, ...entries) {
     super(label);
     this.useContainer('label');
-    this.attributes = attributes;
+    //    this.attributes = attributes;
 
     let me = this;
     this.#select = new Composite("", {});
