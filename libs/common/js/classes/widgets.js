@@ -61,21 +61,33 @@ class Widget {
   /**
    * Expects the given argument to be the FIRST parent to check.
    */
-  static findNearestParentOfType(type, aWidget, actionOnFound = (p)=>{return p;}) {
+  static findNearestParentOfType(type, aWidget, actionOnFound = (p) => { return p; }) {
     let p = aWidget;
-    while (typeof p != "undefined") {
+    while (typeof p != "undefined" && p != null) {
       if (p instanceof type) {
         return actionOnFound(p);
       }
-      p = p.parent;
+      p = p.parent || p.parentElement;
+      if (p instanceof HTMLElement) {
+        p = p.widget || p;
+      }
     }
     return false;
   }
+  
+  #attributes;
 
-  constructor(aLabel = false) {
+  constructor(aLabel = false, attribs = false) {
     this.label = aLabel;
     this.targetDoc = document;
     this.beforeAdd = NOOP;
+    this.#attributes = attribs;
+
+    Object.defineProperty(this, "uuid", {
+      value: self.crypto.randomUUID(),
+      writable: false,
+      configurable: false
+    });
   }
 
   attributes(obj) { return Object.assign(this.htmlProxy(), obj); }
@@ -85,6 +97,9 @@ class Widget {
     this.parent = this.widget || htmlElement.widget || htmlElement;
     let element = this.element;
     element.widget = this;
+    if(typeof this.#attributes == "object"){
+      this.attributes(this.#attributes);
+    }
     htmlElement.addBefore(insertBeforeSibling, element);
 
     return this;
@@ -182,7 +197,7 @@ class BorderedGroup extends Composite {
 
 class Style extends Widget {
   static ELEMENT_NAME = Symbol.for("CSS_ELMNT_NAME");
-  
+
   constructor(content) {
     super('CSS');
     this.element = DOM.style({ type: "text/css" });
@@ -191,26 +206,26 @@ class Style extends Widget {
   }
 
   addRule(more = '') {
-    if(more.isEmpty())
+    if (more.isEmpty())
       return this
-      
-    this.element.textContent += more+'\n';
+
+    this.element.textContent += more + '\n';
     return this;
   }
-  
+
   /**
    * Uses meta-definitions on Widget subclasses to get correct html element tag names
    */
-  ruleFor(type, addRestriction = '', body = ''){
-    if(body.length == 0 && addRestriction.length > 0){
+  ruleFor(type, addRestriction = '', body = '') {
+    if (body.length == 0 && addRestriction.length > 0) {
       body = addRestriction;
       addRestriction = '';
     }
-    
-    if(typeof type[Style.ELEMENT_NAME] == "undefined"){
+
+    if (typeof type[Style.ELEMENT_NAME] == "undefined") {
       return this;
     }
-    
+
     return this.addRule(`${type[Style.ELEMENT_NAME]}${addRestriction} {${body}}`);
   }
 }
@@ -221,6 +236,7 @@ class Style extends Widget {
 class OptionWidget extends Widget {
 
   #parent;
+  #parentGroup = false;
   #parentKey = "";
   #ownKey = "";
   #forceAutoUpdateMode;
@@ -261,15 +277,11 @@ class OptionWidget extends Widget {
   get parent() { return this.#parent; }
   set parent(aParent) {
     this.#parent = aParent;
-    this.#parentKey = "";
-    let p = Widget.findNearestParentOfType(OptionGroup, aParent);
+    let p = Widget.findNearestParentOfType(OptionGroup, this.parent);
     if (p !== false) {
-      this.#parentKey = p.key + '.';
       p[this.#ownKey] = this;
     }
-    this.key = this.#parentKey + this.#ownKey;
-    this.value = this.current = CFG.get(this.key, this.default);
-    this.#updateDisplay();
+    this.#parentGroup = p;
   }
 
   trackChanges(htmlElement, prop = 'value', type = 'change') {
@@ -282,7 +294,7 @@ class OptionWidget extends Widget {
     if (this.current == aNewValue) {
       return;
     }
-    
+
     this.current = aNewValue;
 
     if (false === this.changeListener(this.current)) {
@@ -299,17 +311,27 @@ class OptionWidget extends Widget {
   /** handles programmatic change of value */
   #updateDisplay(markChanged = this.#isChanged()) {
     let isDifferent = this.input.value != this.current;
-    if(isDifferent){
+    if (isDifferent) {
       this.input.value = this.current
     }
-    
-    if(markChanged){
+
+    if (markChanged) {
       this.element.style.fontWeight = 'bold';
       this.element.setAttribute("changeIndicator", "true");
     } else {
       this.element.style.fontWeight = 'normal';
       this.element.removeAttribute("changeIndicator");
     }
+  }
+
+  init() {
+    this.#parentKey = "";
+    if (this.#parentGroup !== false) {
+      this.#parentKey = this.#parentGroup.key + '.';
+    }
+    this.key = this.#parentKey + this.#ownKey;
+    this.value = this.current = CFG.get(this.key, this.default);
+    this.#updateDisplay();
   }
 
   /** save temporary value to config */
@@ -320,7 +342,7 @@ class OptionWidget extends Widget {
     }
     CFG.set(this.key, this.current);
     this.value = this.current;
-    
+
     this.#updateDisplay();
   }
 
@@ -331,12 +353,12 @@ class OptionWidget extends Widget {
   }
 
   #isChanged() { return this.value != this.current; }
-  
-  get autoUpdateConfigured(){
-    if(typeof this.#forceAutoUpdateMode == "boolean"){
+
+  get autoUpdateConfigured() {
+    if (typeof this.#forceAutoUpdateMode == "boolean") {
       return this.#forceAutoUpdateMode;
     }
-    return Widget.findNearestParentOfType(OptionGroup, this.parent, (p)=>{
+    return Widget.findNearestParentOfType(OptionGroup, this.parent, (p) => {
       return p.allowsAutosave();
     });
   }
@@ -345,17 +367,18 @@ class OptionWidget extends Widget {
   generateElement() { return DOM.div({}, this.targetDoc).add(this.label).addText(': ' + this.value); }
 }
 
-//FIXME: input-spezifische Attribute durch-proxyen
 class LabeledText extends Widget {
+  static [Style.ELEMENT_NAME] = 'label[kind="text"]';
+  
   constructor(label, attributes = {}) {
-    super(label);
-    //this.attributes = attributes;
+    super(label, attributes);
   }
 
   get element() {
     return lazyGet(this, "element", () => {
       this.input = DOM.input({}, this.targetDoc)
-      return DOM.label(this.attributes, this.targetDoc).add(this.label + ": ", this.input);
+      let lbl = DOM.label({kind:'text'}, this.targetDoc).add(this.label + ": ", this.input);
+      return Widget.delegateProperties(lbl, this.input);
     });
   }
 
@@ -364,17 +387,16 @@ class LabeledText extends Widget {
 }
 
 class LabeledCheckbox extends Widget {
-  static [Style.ELEMENT_NAME] = "label";
-  
-  constructor(label, attributes = {}) {
-    super(label);
-    //    this.attributes = attributes;
+  static [Style.ELEMENT_NAME] = 'label[kind="check"]';
+
+  constructor(label, attributes) {
+    super(label, attributes);
   }
 
   get element() {
     return lazyGet(this, "element", () => {
       this.input = DOM.input({ type: 'checkbox' }, this.targetDoc);
-      let label = DOM.label(this.attributes, this.targetDoc).add(this.input, " ", this.label);
+      let label = DOM.label({kind:'check'}, this.targetDoc).add(this.input, " ", this.label);
       return Widget.delegateProperties(label, this.input);
     });
   }
@@ -412,9 +434,8 @@ class LabeledRadioGroup extends Composite {
   #radios = {};
 
   constructor(groupName, title, attributes = {}, ...entries) {
-    super(title);
+    super(title, attributes);
     this.groupName = groupName;
-    //    this.attributes = attributes;
 
     if (typeof this.label != "undefined") {
       super.add((doc) => {
@@ -478,9 +499,8 @@ class LabeledDropDown extends Composite {
   #select = {};
 
   constructor(label, attributes = {}, ...entries) {
-    super(label);
+    super(label, attributes);
     this.useContainer('label');
-    //    this.attributes = attributes;
 
     let me = this;
     this.#select = new Composite("", {});

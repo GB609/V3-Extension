@@ -65,97 +65,139 @@ var OPTIONS = {};
     }
   }
 
-  async function createOptionLink(script) {
-    if (!script.loaded) {
-      await script.load();
+  async function createOptionElement(script, details = false) {
+    if (!script.loaded) { await script.load(); }
+
+    if (typeof script.content == "undefined") {
+      return script.name;
     }
 
-    if (script.content && script.content.getOptions() !== false) {
-      var link = DOM.a({
-        href: 'javascript:;'
-      }).addText(script.name);
-      link.addEventListener('click', function() {
-        var opts = script.content.getOptions();
-        var target = null;
-        if (typeof window.top.frames.main !== "undefined") {
-          target = window.top.frames.main.document.body;
-          Element.prototype.wipe.call(target);
-          target.appendChild(DOM.div({
-            style: {
-              display: 'inline-block',
-              width: '80%',
-              margin: '0 10%',
-              boxSizing: 'border-box'
-            }
-          }));
-          target = target.firstElementChild;
-        } else {
-          popup = new MessageWindow("60%", 'center');
-          popup.closeOnHide = true;
-          popup.openUrl("info.php", false);
-          target = popup.frame.document.body;
-          Element.prototype.wipe.call(target);
-          popup.show();
-        }
+    let options = script.content.getOptions();
+    if (!(options instanceof OptionGroup)) {
+      return script.content.title || script.name;
+    }
 
-        target.add(opts);
-        var saveButton = DOM.button().addText("Speichern");
-        saveButton.addEventListener('click', function() {
-          opts.save();
-        });
-        target.add(saveButton);
+    if (details) {
+      let opts = options.showButtons().htmlProxy();
+
+      Object.assign(opts.style, {
+        display: 'inline-block',
+        width: '80%',
+        margin: '0 10%',
+        boxSizing: 'border-box'
       });
 
-      return link;
+      return opts;
     }
 
-    return script.name;
+    var link = DOM.a({
+      href: 'javascript:;'
+    }).addText(script.content.title || script.name);
+    link.addEventListener('click', function() {
+      //#parameter übergeben
+      if (typeof window.top.frames.main == "undefined") {
+        //FIXME: Wird nicht tun, MessageWindow ist Teil von Transport-Vorschau 
+        popup = new MessageWindow("60%", 'center');
+        popup.closeOnHide = true;
+        popup.show();
+        //TODO: MessageWindow Frame zu "main" umbenennen
+        //TODO: MessageWindow zu Widgets migrieren
+      }
+
+      let newUrl = 'sonstigesnavi.php#extOpt=' + script.name;
+      let targetFrame = window.top.frames.main;
+      let isInOptionsAlready = targetFrame.location.href.includes('sonstigesnavi.php#extOpt=');
+      targetFrame.location = newUrl;
+      if (isInOptionsAlready) {
+        targetFrame.location.reload();
+      }
+
+    });
+
+    return link;
   }
 
   async function addPluginOptions() {
-    function cleanCacheOnChange(sname) {
-      LOGGER.info(sname + " an-/ausgeschaltet - loesche SM Cache");
-      CACHE.clear(ScriptManager.KEY_LOCATION_MATCH);
-    }
+  function cleanCacheOnChange(sname) {
+    LOGGER.info(sname + " an-/ausgeschaltet - loesche SM Cache");
+    CACHE.clear(ScriptManager.KEY_LOCATION_MATCH);
+  }
 
-    let all = ScriptManager.getAll();
+  let genericOptions = {
+    loaded: true, name: 'Allgemein',
+    content: {
+      alwaysActive: true,
+      getOptions: function getOptions() {
+        return OptionGroup('', '',
+          LOGGER.OPTIONS
+        )
+      }
+    }
+  };
+
+  let urlParam = window.location.href.split('#extOpt=');
+  let all = Object.assign({ Allgemein: genericOptions }, ScriptManager.getAll());
+
+  let addition;
+
+  if (urlParam.length > 1) {
+    document.body.wipe();
+    addition = await createOptionElement(all[urlParam[1]], true);
+
+  } else {
     let group = OptionGroup(ScriptManager.KEY_DISABLED, "Aktive V3 Erweiterungen:");
-    group.add(new Style("label{display:block;} h3{margin:5px 0;}"));
+    group.childPanel.className = "naviPanel";
+    group.add(new Style()
+      .ruleFor(CheckOption, 'display:block;')
+      .ruleFor(CheckOption, ' *[disabled]', 'visibility:hidden;')
+      .ruleFor(CheckOption, ':hover', 'cursor:pointer;')
+      .ruleFor(DOM.h3, 'margin:5px 0;'));
+
     for (sname of Object.keys(all)) {
       let val = all[sname];
-      let optionLink = await createOptionLink(val);
+      let optionLink = await createOptionElement(val);
       group.add(CheckOption(sname, optionLink)
         .autoUpdate(true)
         .onChange(cleanCacheOnChange.bind(null, sname))
+        .attributes({ disabled: val.content.alwaysActive === true })
       );
     }
-
-    document.body.add(group);
-    document.body.insertBefore(document.body.lastChild, document.body.firstChild);
+    addition = group;
   }
 
-  async function startup() {
-    LOGGER.debug("checking location:", location);
-    if (location.pathname == "/index.php"
-      || location.pathname == "/") {
-      await ScriptManager.init(RESOURCES);
-    }
+  document.body.addBefore(document.body.firstChild, addition);
+}
 
-    try {
-      handleSync();
-      await loadActiveScriptsForCurrentWindow();
-      if (location.href.endsWith("sonstigesnavi.php")) {
-        addPluginOptions();
-      }
-    } catch (e) {
-      LOGGER.error(e);
-    }
+async function startup() {
+  LOGGER.debug("checking location:", location);
+  if (location.pathname == "/index.php"
+    || location.pathname == "/") {
+    await ScriptManager.init(RESOURCES);
   }
 
+  try {
+    handleSync();
+    await loadActiveScriptsForCurrentWindow();
+    if (location.pathname.startsWith("/sonstigesnavi.php")) {
+      addPluginOptions();
+    }
+  } catch (e) {
+    LOGGER.error(e);
+  }
+}
+
+if (document.readyState == "complete") {
   startup();
-})();
+} else {
+  document.addEventListener("readystatechange", () => {
+    if (document.readyState == "complete") {
+      startup();
+    }
+  })
+}
+}) ();
 
-window.listStorage = function(key, dict = window.localStorage) {
+unsafeWindow.listStorage = function(key, dict = window.localStorage) {
   var KEY_SYM = Symbol.for("KEY");
 
   if (typeof key == "string") {
@@ -169,8 +211,8 @@ window.listStorage = function(key, dict = window.localStorage) {
   }
 
   let parts = key;
-  if(key.length == 0){
-      return [];
+  if (key.length == 0) {
+    return [];
   }
   let current = parts.shift();
   if (typeof dict[current] != "undefined") {

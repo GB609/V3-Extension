@@ -40,7 +40,7 @@
       CheckOption('debug', 'Höchster Detailgrad', true),
       DOM.br,
       CheckOption('immediateOutput', 'Ausgabe auch auf Entwicklerkonsole', false)
-    );
+    ).init();
 
     this._logs = entryCache;
 

@@ -29,7 +29,13 @@ class ValueType {
 };
 
 class OptionAction extends Event {
+  static #LISTENER_LIST = Symbol.for("LISTENER_LIST");
+
   static NAME = "OptionAction";
+  static INIT = () => new OptionAction("init");
+  static SAVE = () => new OptionAction("save");
+  static REVERT = () => new OptionAction("revert");
+
   constructor(actionName) {
     super("OptionAction");
     this.action = actionName;
@@ -44,12 +50,11 @@ class OptionAction extends Event {
   }
 
   static addListener(target, receiver) {
-    target.actionListener ||= {}
+    target[this.#LISTENER_LIST] ||= {}
 
-    if (!target.actionListener[receiver.key]) {
-      console.log(location.href, "register listener at", target.widget, "calling", receiver);
+    if (!target[this.#LISTENER_LIST][receiver.uuid]) {
       target.addEventListener(OptionAction.NAME, OptionAction.trigger.bind(receiver));
-      target.actionListener[receiver.key] = true;
+      target[this.#LISTENER_LIST][receiver.uuid] = true;
     }
   }
 }
@@ -59,36 +64,52 @@ function OptionGroup(aId, aTitle, ...rest) {
     return new OptionGroup(aId, aTitle, ...rest);
   }
 
+  function integrateChildren(nodeList) {
+    for (let n of nodeList) {
+
+      if (typeof n.widget == "undefined") { continue; }
+
+      let opt = Widget.findNearestParentOfType(OptionWidget, n.widget);
+      let group = Widget.findNearestParentOfType(OptionGroup, opt.parent);
+      if (opt !== false) {
+        OptionAction.addListener(group.element, opt);
+      } else if (n.widget instanceof OptionGroup && n.widget.parent == this) {
+        OptionAction.addListener(this.element, n.widget);
+      }
+    }
+  }
+
   return OptionGroup.initWithSuper([aTitle], function() {
     this.id = aId;
     this.superAdd(new Style().addRule("*[changeIndicator='true']::after{ content: '*'}"));
     if (this.label !== false) {
-      this.superAdd(DOM.h3({}, this.targetDoc).addText(this.label));
+      this.superAdd((doc) => DOM.h3({}, doc).addText(this.label) );
     }
-    this.childPanel = new Composite(this.id + ':children');
+    this.childPanel = new Composite(this.id + ':children', ...rest);
     this.superAdd(this.childPanel);
+    //rest.forEach(this.add, this);
+    this.childPanel = this.childPanel.htmlProxy();
 
+    this.buttonRow = new Composite("",
+      new Style().ruleFor(DOM.button, "margin:5px;"),
+      DOM.button({ onclick: this.save.bind(this) }).add("Speichern"),
+      DOM.button({ onclick: this.revert.bind(this) }).add("Rückgängig")
+    );
+    this.superAdd(this.buttonRow.useContainer("p"));
+    this.buttonRow &&= this.buttonRow.htmlProxy();
+    
+    this.showButtons(false);
+    
+    integrateChildren.call(this, this.childPanel.querySelectorAll('*'));
+
+    //mutationobserver für den fall, dass nachträglich etwas dazugefügt wird
     this.mutationObserver = new MutationObserver((changeList) => {
       changeList.forEach(change => {
-        if (change.type == "childList") {
-          for (let n of change.addedNodes) {
-
-            if (typeof n.widget == "undefined") { continue; }
-
-            let opt = Widget.findNearestParentOfType(OptionWidget, n.widget);
-            if (opt !== false) {
-              let group = Widget.findNearestParentOfType(OptionGroup, opt.parent);
-              OptionAction.addListener(group.element, opt);
-            } else if (n.widget instanceof OptionGroup && this != n.widget) {
-              OptionAction.addListener(this.element, n.widget);
-            }
-          }
-        }
+        let children = change.target.querySelectorAll('*');
+        integrateChildren.call(this, [change.target, ...children]);
       })
     });
     this.mutationObserver.observe(this.childPanel.element, { childList: true, subtree: true });
-    this.childPanel = this.childPanel.htmlProxy();
-    rest.forEach(this.add, this);
   });
 }
 defineProto(OptionGroup.inherits(Composite), {
@@ -103,7 +124,9 @@ defineProto(OptionGroup.inherits(Composite), {
    * must be called BEFORE htmlProxy or element insertion
    */
   showButtons(useButtons = true) {
-    return this.useButtons = useButtons, this;
+    this.useButtons = useButtons;
+    this.buttonRow.style.display = useButtons ? 'block' : 'none';
+    return this;
   },
 
   get key() { return this.parentKey + this.id; },
@@ -121,25 +144,17 @@ defineProto(OptionGroup.inherits(Composite), {
 
   get element() {
     return lazyGet(this, 'element', () => {
-      let doc = this.targetDoc;
-
-      if (this.useButtons && typeof this.buttonRow == "undefined") {
-        this.buttonRow = new Composite("",
-          new Style("button{margin:5px;}"),
-          DOM.button({ onclick: this.save.bind(this) }, doc).add("Speichern"),
-          DOM.button({ onclick: this.revert.bind(this) }, doc).add("Rückgängig")
-        );
-        super.add(this.buttonRow.useContainer("p").inDoc(doc));
-      }
-
-      return super.element;
+      let elmnt = super.element;
+      elmnt.className = "optionGroup"
+      return elmnt;
     });
   },
 
-  save() { this.element.dispatchEvent(new OptionAction("save")); },
-  revert() { this.element.dispatchEvent(new OptionAction("revert")); },
+  init() { return this.element.dispatchEvent(OptionAction.INIT()), this; },
+  save() { this.element.dispatchEvent(OptionAction.SAVE()); },
+  revert() { this.element.dispatchEvent(OptionAction.REVERT()); },
 }, (type) => {
-  type[Style.ELEMENT_NAME] = "div";
+  type[Style.ELEMENT_NAME] = ".optionGroup";
 });
 
 // ----- TEXT FIELD -----
@@ -152,13 +167,12 @@ function TextOption(keyName, label, aDefault, aType) {
 }
 defineProto(TextOption.inherits(OptionWidget), {
   generateElement(targetDoc) {
-    this.input = new LabeledText(this.label, {
-      'class': 'textOption',
-      style: { display: 'block' }
-    }).inDoc(targetDoc).htmlProxy();
+    this.input = new LabeledText(this.label, {className: 'textOption'}).inDoc(targetDoc).htmlProxy();
     this.trackChanges(this.input);
     return this.input;
   }
+}, (type) => {
+  type[Style.ELEMENT_NAME] = LabeledText[Style.ELEMENT_NAME]+".textOption";
 });
 
 // ----- CHECKBOX -----
@@ -170,12 +184,12 @@ function CheckOption(keyName, label, aDefault = false) {
 }
 defineProto(CheckOption.inherits(OptionWidget), {
   generateElement(targetDoc) {
-    this.input = new LabeledCheckbox(this.label).inDoc(targetDoc).htmlProxy();
+    this.input = new LabeledCheckbox(this.label, {className: 'checkOption'}).inDoc(targetDoc).htmlProxy();
     this.trackChanges(this.input);
     return this.input;
   }
 }, (type) => {
-  type[Style.ELEMENT_NAME] = LabeledCheckbox[Style.ELEMENT_NAME];
+  type[Style.ELEMENT_NAME] = LabeledCheckbox[Style.ELEMENT_NAME]+'.checkOption';
 });
 
 // ----- LIST OF RADIOS (mutual exclusive alternative values) -----

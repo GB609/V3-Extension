@@ -126,8 +126,10 @@ Object.defineProperties(Element.prototype, {
       }
 
       if (typeof other == "undefined" || !(other instanceof HTMLElement)) {
+        element.parent ||= (this.widget || this);
         return this.appendChild(element), this;
       } else {
+        element.parent ||= (this.widget || this);
         return this.insertBefore(element, other), this;
       }
     }

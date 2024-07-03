@@ -3,9 +3,10 @@ class Plugin {
 	constructor(pName, hooks = {}){ 
 		this.name = pName;
 		Object.assign(this, hooks);
+		this.options &&= this.options.init();
 	}
 	execute(){ throw 'not implemented';	}
-	getOptions(){ return (typeof this.options != "undefined") ? this.options : false;}
+	getOptions(){ return this.options || false; }
 
 	registerEventListener(){
 		if(!this.eventListener) return false;
