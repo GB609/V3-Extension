@@ -49,24 +49,30 @@ class TransportUpdatedEvent extends Event {
   }
 
   function transportAmountFromModeAndStocks(mode, stock, remoteStock) {
-    mode = /(\d+)([<>\+\-])?/.exec("" + mode);
+    mode = /([<>=\+\-])?[ ]*(\d+)/.exec("" + mode);
     if (mode == null) return 0;
 
-    var amount = parseInt(mode[1]);
-    switch (mode[2]) {
-      case undefined: // no operator - keep constant
+    var amount = parseInt(mode[2]);
+    switch (mode[1]) {
+      case undefined:
+      case '=': 
+        //keep constant: export if stock>amount, import if stock<amount 
         amount = stock - amount;
         break;
-
-      case '>': break; //nothing to do, simple positive number is correct
-      case '<':
-        amount = -amount;
+      case '>':
+        //export only if stock is >amount, export diff
+        amount = (stock > amount) ? stock - amount : 0;
         break;
-      case '+':
+      case '<':
+        //import only if stock is <amount, import diff
         amount = (stock < amount) ? stock - amount : 0;
         break;
+      case '+':
+        //ALWAYS import amount, no conditions
+        amount = -amount;
+        break;
       case '-':
-        amount = (stock > amount) ? stock - amount : 0;
+        //ALWAYS export amount, no conditions 
         break;
 
       default: //something is broken, skip this resource
@@ -77,7 +83,7 @@ class TransportUpdatedEvent extends Event {
       //cap to max of local stock if outgoing transport
       amount = Math.min(stock, amount);
     } else if (amount < 0) {
-      //cap to max of remove stock if incoming transport
+      //cap to max of remote stock if incoming transport
       amount = -Math.min(remoteStock, Math.abs(amount));
     }
 
@@ -153,7 +159,7 @@ class TransportUpdatedEvent extends Event {
 
     input.targetSetting.transportAmount[input.resource.name] = requiredAP;
 
-    input.setAttribute('class', (requiredAP > 0) ? 'hinweis5' : '');
+    input.setAttribute('class', (requiredAP > 0) ? 'hinweis9' : '');
     window.dispatchEvent(new TransportUpdatedEvent(input.targetSetting));
   }
 
@@ -179,15 +185,15 @@ class TransportUpdatedEvent extends Event {
   function setupControlDiv(resTable) {
     var controlDiv = TEMPLATE.asDom("controlPanel");
 
+    // dropdown zum löschen von konfigurationen
+    if (SETTING.length > 0) {
+      controlDiv.add(new Style().addRule("span#form-removeSetting{display:inline-block !important;}"));
+    }
+    
     var options = DOM.byAttribute('span', 'id', 'control-options', controlDiv);
     // zusätzliche Optionen
     options.add(OPTIONS.reloadAfterTransport.autoUpdate(true));
     options.add(OPTIONS.showReport.autoUpdate(true));
-
-    // dropdown zum löschen von konfigurationen
-    if (SETTING.length > 0) {
-      DOM.byAttribute('span', 'id', 'form-removeSetting', controlDiv).style.display = "inline-block";
-    }
 
     // add control panel
     resTable.parentElement.insertBefore(controlDiv, resTable);
@@ -232,7 +238,7 @@ class TransportUpdatedEvent extends Event {
         createHeader: function(aConfig, aClass) {
           var newTd = DOM.td({ "class": aClass });
           newTd.taskDefinition = TransportTask.forSetting(aConfig);
-          newTd.innerHTML = String.format(this.headerTpl, aConfig.id, aConfig.provName, aConfig.id);
+          newTd.innerHTML = String.format(this.headerTpl, aConfig.id, aConfig.provName, aConfig.id, aConfig.provName.split(' ')[0]);
 
           this.addListener.push(listener(newTd.firstElementChild, 'click', function() {
             this.parentElement.taskDefinition.loadTable(readAndStartTransport);

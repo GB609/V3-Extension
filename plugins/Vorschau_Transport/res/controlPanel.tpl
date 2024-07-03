@@ -19,10 +19,19 @@
 <a href="javascript:;" 
 	onclick="(function(st){st.display=='none' ? st.display='block' : st.display='none';})(this.nextElementSibling.style);"> ?</a>
 <div style="display:none;" id="helpDiv">
-Doppelklick auf Spalte l&ouml;scht Einstellung.<br/>
-x&gt;: Exportiere x | x&lt;: Importiere x | x: halte konstant auf x (Import/Export nach Bedarf) | x+: Import nur wenn Lager &lt; x | x-: Export nur wenn Lager > x.<br />
-Berechnete Transportmenge bei Transport auf max. m&ouml;glich reduziert.<br/>
-<span class="hinweis5">Rohstoffe, die wirklich transportiert werden m&uuml;ssen nach Einberechnung des Lagerbestandes.</span>
+Es kann für jeden Rohstoffe einer von 5 Transportmodi verwendet werden. Dafür wird der eingegebenen Menge X jeweils ein bestimmtes Steuerzeichen vorangestellt:
+<ul>
+<li>&gt;X - Nur Export; aber nur soviel, dass immer mindestens X im Lager übrig bleibt. Ist weniger im Lager, passiert nichts</li>
+<li>&lt;X - Nur Import; aber nur genug, um das Lager auf X aufzufüllen.</li>
+<li>=X - Es wird versucht, den Lagerbestand konstant bei X zu halten. Ist mehr vorhanden, wird exportiert. Ist weniger vorhanden, importiert. Dies ist das Standardverhalten, wenn kein Steuerzeichen mit angegeben wird.</li>
+<li>+X - Versuche, die Menge X von der anderen Provinz zu importieren, unabhängig von eventuellem Bestand im lokalen Provinzlager (begrenzt durch Lagerbestand der anderen Provinz).</li>
+<li>-X - Exportiere bedingungslos die Menge X zur anderen Provinz</li>
+</ul>
+<p>Ein Transport wird erst beim Klick auf den Link "Transport" in der jeweiligen Spalte ausgelöst. Hier zeigt sich dann der Unterschied der Modi &gt;,&lt; gegen +,-: Erste werden bei einem zweiten Klick auf den gleichen Transportauftrag keinen Effekt mehr haben, letztere dagegen jedoch noch einmal die eingegebenen Mengen ex- bzw. importieren.</p>
+<p>Die Berechnungen versuchen anhand lokaler Zwischenspeicher alle Transportmengen jeweils auf das wirklich vorhandene zu begrenzen. Beispiel: Die Angabe '-100' wird versuchen, genau 100 zu exportieren. Wenn aber nur 30 im Lager sind, werden diese 30 exportiert.<br>
+Unter Umständen können die Zwischenspeicher der Lager eines Transportzieles veraltet sein und falsche Zahlen enthalten. Das würde zu einem Abbruch führen und lässt sich durch ein kurzes öffnen der Vorschau des Zieles korrigieren. Ein passender Link liegt in der Überschrift der entsprechenden Spalte.<br>
+Die Überschriften der Spalten zeigen nach jeder Änderung die derzeit berechnete Gesamtmenge an Waren, die transportiert werden als 'AP: X'. Dies ist KEINE Anzeige der verbrauchten AP, weil hier weder Entfernung, Transportpunkte noch die Gegenstandsgröße in die Berechnung einfließen. Diese Zahl dient der Orientierung und die Menge an wirklich verbrauchten AP wird in den allermeisten Fällen unter dieser Zahl liegen.</p>
+<span class="hinweis9">Rot markiert Rohstoffe, die wirklich transportiert werden m&uuml;ssen nach Einberechnung des lokalen Lagerbestandes und des jeweils eingestellten Transportmodus.</span>
 </div>
 <div id="shortReportDiv" onclick="this.style.display='none';"></div>
 </div>

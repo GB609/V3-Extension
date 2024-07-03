@@ -168,8 +168,9 @@ function StorageBackedDict(aStorage, aPrefix = false) {
 
   this.clear = function(key = _prefix) {
       let keyPath = this.wipeCached(key);
-      if(keyPath == null || keyPath.depth == 1){
-        getMatchingFirstLevelKeys(key).forEach(this.storage.removeItem);
+      if(Array.isArray(keyPath) || keyPath == null || keyPath.depth == 1){
+        keyPath ||= getMatchingFirstLevelKeys(key);
+        keyPath.forEach(this.storage.removeItem);
       } else {
         this.persist(keyPath.first);
       }
@@ -177,10 +178,12 @@ function StorageBackedDict(aStorage, aPrefix = false) {
 
   this.wipeCached = function(key = _prefix) {
     if (key == _prefix) {
+      let foundKeys = [];
       getMatchingFirstLevelKeys(key).forEach(found => {
+        foundKeys.push(found);
         delete _values[found];
       });
-      return null;
+      return found;
     }
 
     let keyPath = analyseKeyPath(key);
