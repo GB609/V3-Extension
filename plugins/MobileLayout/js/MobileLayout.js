@@ -2,6 +2,15 @@
   
   var OPTIONS = OptionGroup('UI', 'Optionen: UI Anpassungen',
     TEMPLATE.asDom('pluginDesc'),
+    new Style()
+      .ruleFor(OptionGroup, ' .optionGroup', `
+        border: 2px dotted lightgrey;
+        border-radius: 5px;
+        padding:5px;
+        margin:5px 0px;`)
+      .ruleFor(DOM.h4, "margin-top:5px")
+      .ruleFor(CheckOption, "display: block"),
+    
     OptionGroup('PROV', false,
       DOM.h4().add('In Provinzen'), 
       CheckOption('settings', 'Zivil:Einstellungen mit DropDowns und Schiebereglern modernisieren', true),

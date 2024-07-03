@@ -155,7 +155,7 @@ window.VorschauTable = class VorschauTable {
   }
 
   addColumns(colSettings) {
-    for (i = 0; i < colSettings.length; i++) {
+    for (let i = 0; i < colSettings.length; i++) {
       var colSetting = colSettings[i];
       this.addColumnData.push(colSetting);
       this.addResources(colSetting.resources);

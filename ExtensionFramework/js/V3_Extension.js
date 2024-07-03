@@ -162,7 +162,7 @@ var OPTIONS = {};
         .attributes({ disabled: val.content.alwaysActive === true })
       );
     }
-    addition = group;
+    addition = group.init();
   }
 
   document.body.addBefore(document.body.firstChild, addition);

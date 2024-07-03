@@ -134,7 +134,8 @@ setUp();
 					size="3" onchange="updateSlider()">%&nbsp&nbsp
 				0%<input type="range" min="0" max="150" step="5" id="abgabenSlider"
 					style="vertical-align:bottom;margin-left:3px;margin-right:3px;" 
-					oninput="this.previousElementSibling.value = parseInt(this.value)/10"/><span>15%</span>
+					oninput="this.previousElementSibling.value = parseInt(this.value)/10"/><span>15%</span><br>
+					(Werte höher als 15% können über das Textfeld eingegeben werden.)
 			</div>
 			
 			<div><input class="formcenter" type="submit" value="aktualisieren"></div>

@@ -1,4 +1,4 @@
-var ProvSetting = class ProvSetting extends Serializable {
+window.ProvSetting = class ProvSetting extends Serializable {
   constructor(aProvName, aResources = {}, aId = new Date().getTime()) {
     super();
     this.provName = aProvName;
@@ -181,8 +181,8 @@ class TransportUpdatedEvent extends Event {
 
     var options = DOM.byAttribute('span', 'id', 'control-options', controlDiv);
     // zusätzliche Optionen
-    options.add(OPTIONS.reloadAfterTransport.autoUpdate(true).getElement());
-    options.add(OPTIONS.showReport.autoUpdate(true).getElement());
+    options.add(OPTIONS.reloadAfterTransport.autoUpdate(true));
+    options.add(OPTIONS.showReport.autoUpdate(true));
 
     // dropdown zum löschen von konfigurationen
     if (SETTING.length > 0) {

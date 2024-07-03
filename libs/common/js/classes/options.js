@@ -73,8 +73,12 @@ function OptionGroup(aId, aTitle, ...rest) {
       let group = Widget.findNearestParentOfType(OptionGroup, opt.parent);
       if (opt !== false) {
         OptionAction.addListener(group.element, opt);
-      } else if (n.widget instanceof OptionGroup && n.widget.parent == this) {
-        OptionAction.addListener(this.element, n.widget);
+      } else if (n.widget instanceof OptionGroup){
+        let group = Widget.findNearestParentOfType(OptionGroup, n.widget.parent);
+        if(group == this){
+          OptionAction.addListener(this.element, n.widget);
+          this[group.id] = group;
+        }        
       }
     }
   }
@@ -134,6 +138,7 @@ defineProto(OptionGroup.inherits(Composite), {
   get parentKey() {
     let superGroup = Widget.findNearestParentOfType(OptionGroup, this.parent);
     if (superGroup !== false) {
+      superGroup[this.id] = this;
       return superGroup.key + '.';
     }
     return "";
