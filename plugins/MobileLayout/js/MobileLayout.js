@@ -1,4 +1,23 @@
 (function() {
+  
+  var OPTIONS = OptionGroup('UI', 'Optionen: UI Anpassungen',
+    TEMPLATE.asDom('pluginDesc'),
+    OptionGroup('PROV', false,
+      DOM.h4().add('In Provinzen'), 
+      CheckOption('settings', 'Zivil:Einstellungen mit DropDowns und Schiebereglern modernisieren', true),
+      CheckOption('cleanUpBuildSelection', 'Unbaubares im Feld-Baumenü ausblenden (Uniques, Küste, Land)', false).attributes({disabled: true})
+    ),
+    OptionGroup('TABLES', false,
+      DOM.h4().add('Tabellen allgemein'),
+      CheckOption('markFilter', 'Eingestellte Filter bei vor/zurück Navigation merken', false).attributes({disabled: true}),
+      CheckOption('enlargeLinks', 'Links vergrößern', false).attributes({disabled: true}),
+      CheckOption('entryNameAsLink', 'Info-Tabellen: Link/ID spalten ausblenden. Eigentliche Bezeichnung (i.d.R. 3. Spalte) wird zu Link.', false).attributes({disabled: true})
+    ),
+    OptionGroup('MOBILE', false,
+      DOM.h4().add('Speziell für kleine Bildschirme/Smartphones'),
+      CheckOption('hideVSColumns', 'Vorschau: Mittlere Spalten ausblenden (und zusammenfassen). Ergänzt auch einen Button zum ausklappen.', false).attributes({disabled: true})
+    )
+  )
 	
 	var curLoc = window.location.pathname.replace(/\//, '').toLowerCase();
 	var curLocId = curLoc.replace(".", "_");
@@ -11,8 +30,16 @@
 
     return target;
   }
+  
+  this.provinz_php = function(){
+    
+  }
 
   this.einstellungen_php = function() {
+    if(!OPTIONS.PROV.settings){
+      return;
+    }
+    
   	var template = TEMPLATE.asText(curLocId);
   	
     var existingForm = DOM.byTag("form")[0];
@@ -40,19 +67,21 @@
           break;
 
         default :
-          console.log("other input: " + input.type);
           continue;
       }
 
       replacements[inputVarName] = inputValue;
     }
-    console.log(replacements);
     var replaced = replaceVars(replacements, template);
     var targetElement = existingForm.parentElement;
     targetElement.removeChild(existingForm);
     TEMPLATE.injectSource(targetElement, replaced);
   };
 
-  let plugin_Mobile = new Plugin("MobileLayout", {execute:(this[curLocId] || function(){})});
+  let plugin_Mobile = new Plugin('${artifactId}', {
+    title: 'UI Anpassungen',
+    options: OPTIONS,
+    execute:(this[curLocId] || function(){})
+  });
   return plugin_Mobile.run();
 }).call({});

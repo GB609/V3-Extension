@@ -248,6 +248,10 @@
     sourceDiv.parentElement.removeChild(sourceDiv);
   };
 
-  let plugin_Menu = new Plugin("Provinzmenü", { options: OPTIONS, execute: buildMenu });
+  let plugin_Menu = new Plugin("ProvinzMenu", {
+    title: 'Provinzmenü', 
+    options: OPTIONS, 
+    execute: buildMenu 
+  });
   return plugin_Menu.run();
 })();

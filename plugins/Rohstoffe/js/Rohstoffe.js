@@ -1,6 +1,14 @@
 (function() {
 	var RES_TABLE = DOM.byTag('table')[0];
 	
+	var OPTIONS = OptionGroup('RESGLB', "Optionen: Rohstoffeglobal +/-",
+    TEMPLATE.asDom('pluginDesc')
+	).showButtons(false);
+	
+	function withSign(number){
+    return number > 0 ? '+'+number : number;
+  }
+	
 	function GlobalResource(aName) {
 		this.myName = aName;
 		this.entries = {};
@@ -28,7 +36,7 @@
       globalData[resName].entries.forEach((key, resource) => {
       	 if (resource.ch != 0) {
            let targetTD = tds[provList[key]];
-           targetTD.innerHTML = String.format('{} ({})', targetTD.innerHTML, resource.ch); 
+           targetTD.innerHTML = String.format('{} ({})', targetTD.innerHTML, withSign(resource.ch)); 
 
            if(resource.ch > 0){
            	targetTD.setAttribute("class", targetTD.getAttribute("class") + " hinweis1");
@@ -41,7 +49,7 @@
       });
 
       let newCol = DOM.td();
-      newCol.innerHTML = rounded(globalData[resName].myTotalChange);
+      newCol.innerHTML = withSign(rounded(globalData[resName].myTotalChange));
       if (globalData[resName].myTotalChange < 0) {
         newCol.setAttribute("class", firstColClass + " hinweis8");
       } else if (globalData[resName].myTotalChange > 0) {
@@ -92,8 +100,10 @@
     firstTd.style.textAlign = "center";
   };
   
-  let plugin_Rohstoffe = new Plugin("Rohstoffe", {
+  let plugin_Rohstoffe = new Plugin('${artifactId}', {
+    title: 'Rohstoffeglobal +/-',
   	eventListener : [{target:"resButton", type:"click", listener:retrieveAndShowResourceData}],
+  	options: OPTIONS,
   	execute : initialize
   });
 
