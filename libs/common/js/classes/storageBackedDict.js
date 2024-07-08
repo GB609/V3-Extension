@@ -170,7 +170,7 @@ function StorageBackedDict(aStorage, aPrefix = false) {
       let keyPath = this.wipeCached(key);
       if(Array.isArray(keyPath) || keyPath == null || keyPath.depth == 1){
         keyPath ||= getMatchingFirstLevelKeys(key);
-        keyPath.forEach(this.storage.removeItem);
+        keyPath.forEach(k => { this.storage.removeItem(k); });
       } else {
         this.persist(keyPath.first);
       }
@@ -183,7 +183,7 @@ function StorageBackedDict(aStorage, aPrefix = false) {
         foundKeys.push(found);
         delete _values[found];
       });
-      return found;
+      return foundKeys;
     }
 
     let keyPath = analyseKeyPath(key);

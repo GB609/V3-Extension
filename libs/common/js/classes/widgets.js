@@ -5,6 +5,33 @@ function lazyGet(obj, prop, factory, canChange = false) {
   Object.defineProperty(obj, prop, { configurable: true, value: data, writable: canChange });
   return data;
 }
+function nonEnumerable(obj, ...properties) {
+  if (properties.length == 0) { properties = Object.keys(obj); }
+  properties.forEach(prop => {
+    if (Array.isArray(prop)) {
+      nonEnumerable(obj, ...prop);
+      return;
+    }
+
+    let desc = Object.getOwnPropertyDescriptor(obj, prop);
+    let getter = desc.get;
+    let setter = desc.set;
+    let value = desc.value;
+
+    if (typeof value == "function"
+      || typeof getter == "function"
+      || typeof setter == "function") {
+      Object.defineProperty(obj, prop, { enumerable: false });
+    } else {
+      Object.defineProperty(obj, prop, {
+        enumerable: false,
+        get() { return this[Symbol.for(prop)] },
+        set(val) { this[Symbol.for(prop)] = val }
+      });
+      obj[Symbol.for(prop)] = value;
+    }
+  });
+}
 
 class Widget {
   static PROXY_TARGET = Symbol.for("HTML_PROXY_TARGET");
@@ -74,13 +101,13 @@ class Widget {
     }
     return false;
   }
-  
+
   #attributes;
 
   constructor(aLabel = false, attribs = false) {
     this.label = aLabel;
     this.targetDoc = document;
-    this.beforeAdd = NOOP;
+    this.parent = null;
     this.#attributes = attribs;
 
     Object.defineProperty(this, "uuid", {
@@ -88,6 +115,11 @@ class Widget {
       writable: false,
       configurable: false
     });
+    Object.defineProperty(this, Symbol.for("_"), {
+      enumerable: false, writable: false,
+      value: `${new.target.name}`
+    });
+    nonEnumerable(this);
   }
 
   attributes(obj) { return Object.assign(this.htmlProxy(), obj); }
@@ -97,7 +129,7 @@ class Widget {
     this.parent = this.widget || htmlElement.widget || htmlElement;
     let element = this.element;
     element.widget = this;
-    if(typeof this.#attributes == "object"){
+    if (typeof this.#attributes == "object") {
       this.attributes(this.#attributes);
     }
     htmlElement.addBefore(insertBeforeSibling, element);
@@ -128,14 +160,15 @@ class Widget {
 class Composite extends Widget {
   #children = [];
   #created = false;
+  #containerTag = 'div';
 
   constructor(aLabel = '', ...rest) {
     super(aLabel);
-    this.containerTag = "div";
+    this.#containerTag = "div";
     rest.forEach(this.add, this);
   }
 
-  useContainer(tag = 'div') { return this.containerTag = tag, this; }
+  useContainer(tag = 'div') { return this.#containerTag = tag, this; }
 
   add(child) {
     if (this.#children.includes(child)) {
@@ -153,7 +186,7 @@ class Composite extends Widget {
   get element() {
     return lazyGet(this, 'element', () => {
       this.#created = true;
-      let result = DOM[this.containerTag]({ widget: this }, this.targetDoc);
+      let result = DOM[this.#containerTag]({ widget: this }, this.targetDoc);
       return result.add(this.#children);
     });
   }
@@ -238,14 +271,13 @@ class OptionWidget extends Widget {
   #parent;
   #parentGroup = false;
   #parentKey = "";
-  #ownKey = "";
   #forceAutoUpdateMode;
 
   constructor(aLabel, keyPath = false, defaultValue = '', handler = ValueType.STRING) {
     super(aLabel);
     if (!keyPath) throw 'key is required';
 
-    this.#ownKey = this.key = keyPath;
+    this.id = this.key = keyPath;
     this.default = defaultValue;
     this.typeHandler = handler;
     this.changeListener = NOOP;
@@ -274,15 +306,18 @@ class OptionWidget extends Widget {
   }
 
   // ----- Option functionality related to config setting and value updates -----
-  get parent() { return this.#parent; }
+  /*get parent() { return this.#parent; }
   set parent(aParent) {
-    this.#parent = aParent;
-    let p = Widget.findNearestParentOfType(OptionGroup, this.parent);
-    if (p !== false) {
-      p[this.#ownKey] = this;
-    }
+    
+     this.#parent = aParent;
+     let p = Widget.findNearestParentOfType(OptionGroup, this.parent);
+     if (p !== false) {
+       p[this.#ownKey] = this;
+     }
     this.#parentGroup = p;
-  }
+    this.#parentGroup = aParent;
+
+  }*/
 
   trackChanges(htmlElement, prop = 'value', type = 'change') {
     htmlElement.addEventListener(type, (evt) => this.updateCurrent(htmlElement[prop]));
@@ -325,11 +360,11 @@ class OptionWidget extends Widget {
   }
 
   init() {
-    this.#parentKey = "";
+    /*this.#parentKey = "";
     if (this.#parentGroup !== false) {
       this.#parentKey = this.#parentGroup.key + '.';
     }
-    this.key = this.#parentKey + this.#ownKey;
+    this.key = this.#parentKey + this.#ownKey;*/
     this.value = this.current = CFG.get(this.key, this.default);
     this.#updateDisplay();
   }
@@ -369,7 +404,7 @@ class OptionWidget extends Widget {
 
 class LabeledText extends Widget {
   static [Style.ELEMENT_NAME] = 'label[kind="text"]';
-  
+
   constructor(label, attributes = {}) {
     super(label, attributes);
   }
@@ -377,7 +412,7 @@ class LabeledText extends Widget {
   get element() {
     return lazyGet(this, "element", () => {
       this.input = DOM.input({}, this.targetDoc)
-      let lbl = DOM.label({kind:'text'}, this.targetDoc).add(this.label + ": ", this.input);
+      let lbl = DOM.label({ kind: 'text' }, this.targetDoc).add(this.label + ": ", this.input);
       return Widget.delegateProperties(lbl, this.input);
     });
   }
@@ -396,7 +431,7 @@ class LabeledCheckbox extends Widget {
   get element() {
     return lazyGet(this, "element", () => {
       this.input = DOM.input({ type: 'checkbox' }, this.targetDoc);
-      let label = DOM.label({kind:'check'}, this.targetDoc).add(this.input, " ", this.label);
+      let label = DOM.label({ kind: 'check' }, this.targetDoc).add(this.input, " ", this.label);
       return Widget.delegateProperties(label, this.input);
     });
   }

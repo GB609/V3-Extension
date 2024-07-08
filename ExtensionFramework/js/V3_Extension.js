@@ -156,11 +156,14 @@ var OPTIONS = {};
     for (sname of Object.keys(all)) {
       let val = all[sname];
       let optionLink = await createOptionElement(val);
-      group.add(CheckOption(sname, optionLink)
+      let opt = CheckOption(sname, optionLink)
         .autoUpdate(true)
         .onChange(cleanCacheOnChange.bind(null, sname))
-        .attributes({ disabled: val.content.alwaysActive === true })
-      );
+        .attributes({ disabled: val.content.alwaysActive === true });
+      if(val.content.alwaysActive === true){
+        opt.click = optionLink.click;
+      }
+      group.add(opt);
     }
     addition = group.init();
   }

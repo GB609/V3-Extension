@@ -271,8 +271,9 @@ class TransportUpdatedEvent extends Event {
     CACHE.set("resUsage." + vsTable.provName, usage);
   }
 
-  let plugin_Vorschau = new Plugin("Vorschau_Transport", {
+  let plugin_Vorschau = new Plugin("${artifactId}", {
     title: 'Vorschau: Transport',
+    options: OPTIONS,
     eventListener: [
       listener('add-list', 'focus', function() {
         populateDropDown(this, () => PROVINCES, (ele) => ({ value: ele.c, label: String.format("{} ({})", ele.n, ele.c) }), "");
@@ -290,7 +291,6 @@ class TransportUpdatedEvent extends Event {
       }),
       listener(window, 'ResUpdated', updateCounter)
     ],
-    options: OPTIONS,
 
     execute: initialize,
 

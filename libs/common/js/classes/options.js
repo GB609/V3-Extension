@@ -1,8 +1,17 @@
 function defineProto(type, members = false, init = false) {
   if (typeof members === "object" && !members.isEmpty()) {
     let superProto = Object.getPrototypeOf(type.prototype);
+
+    Object.defineProperty(members, Symbol.for("_"), {
+      enumerable: false, writable:false,
+      value:`${type.name}-${superProto.constructor.name}`});
     Object.setPrototypeOf(members, superProto);
     Object.setPrototypeOf(type.prototype, members);
+    
+    //anything part of the members declaration will not be an enumerable property
+    //non-function members will be wrapped in getters/setters to retain the 
+    //non-enumerable characteristic on subclasses
+    nonEnumerable(members, Object.keys(members));
   }
 
   if (typeof init == 'function') {
@@ -42,20 +51,27 @@ class OptionAction extends Event {
   }
 
   static trigger(evt) {
-    try {
-      this[evt.action]();
-    } catch (e) {
-      LOGGER.error(evt, "caused", e, "on", this);
-    }
+    try { this[evt.action](); }
+    catch (e) { LOGGER.error(evt, "caused", e, "on", this); }
   }
 
   static addListener(target, receiver) {
     target[this.#LISTENER_LIST] ||= {}
-
     if (!target[this.#LISTENER_LIST][receiver.uuid]) {
-      target.addEventListener(OptionAction.NAME, OptionAction.trigger.bind(receiver));
-      target[this.#LISTENER_LIST][receiver.uuid] = true;
+      let listener = OptionAction.trigger.bind(receiver);
+      target.addEventListener(OptionAction.NAME, listener);
+      target[this.#LISTENER_LIST][receiver.uuid] = listener;
+      return listener;
     }
+    return false;
+  }
+
+  static clearListener(target) {
+    target[this.#LISTENER_LIST] ||= {}
+    target[this.#LISTENER_LIST].forEach((key, listener) => {
+      target.removeEventListener(OptionAction.NAME, listener);
+    });
+    delete target[this.#LISTENER_LIST];
   }
 }
 
@@ -64,34 +80,14 @@ function OptionGroup(aId, aTitle, ...rest) {
     return new OptionGroup(aId, aTitle, ...rest);
   }
 
-  function integrateChildren(nodeList) {
-    for (let n of nodeList) {
-
-      if (typeof n.widget == "undefined") { continue; }
-
-      let opt = Widget.findNearestParentOfType(OptionWidget, n.widget);
-      let group = Widget.findNearestParentOfType(OptionGroup, opt.parent);
-      if (opt !== false) {
-        OptionAction.addListener(group.element, opt);
-      } else if (n.widget instanceof OptionGroup){
-        let group = Widget.findNearestParentOfType(OptionGroup, n.widget.parent);
-        if(group == this){
-          OptionAction.addListener(this.element, n.widget);
-          this[group.id] = group;
-        }        
-      }
-    }
-  }
-
   return OptionGroup.initWithSuper([aTitle], function() {
     this.id = aId;
     this.superAdd(new Style().addRule("*[changeIndicator='true']::after{ content: '*'}"));
     if (this.label !== false) {
-      this.superAdd((doc) => DOM.h3({}, doc).addText(this.label) );
+      this.superAdd((doc) => DOM.h3({}, doc).addText(this.label));
     }
     this.childPanel = new Composite(this.id + ':children', ...rest);
     this.superAdd(this.childPanel);
-    //rest.forEach(this.add, this);
     this.childPanel = this.childPanel.htmlProxy();
 
     this.buttonRow = new Composite("",
@@ -101,22 +97,21 @@ function OptionGroup(aId, aTitle, ...rest) {
     );
     this.superAdd(this.buttonRow.useContainer("p"));
     this.buttonRow &&= this.buttonRow.htmlProxy();
-    
-    this.showButtons(false);
-    
-    integrateChildren.call(this, this.childPanel.querySelectorAll('*'));
 
-    //mutationobserver für den fall, dass nachträglich etwas dazugefügt wird
-    this.mutationObserver = new MutationObserver((changeList) => {
-      changeList.forEach(change => {
-        let children = change.target.querySelectorAll('*');
-        integrateChildren.call(this, [change.target, ...children]);
-      })
+    this.showButtons(false);
+
+    //superAdd should be visible in constructor - overwrite
+    Object.defineProperty(this, "superAdd", {
+      configurable: false, writable: false, enumerable: false,
+      value: interfaced.bind(this, 'superAdd is only allowed during construction')
     });
-    this.mutationObserver.observe(this.childPanel.element, { childList: true, subtree: true });
   });
 }
 defineProto(OptionGroup.inherits(Composite), {
+  //properties added here will not be enumerable later on
+  id: '', label: null, dirty: true, useButtons: false, 
+  childPanel: null, buttonRow: null, mutationObserver: null,
+
   allowsAutosave() {
     let superGroup = Widget.findNearestParentOfType(OptionGroup, this.parent);
     if (superGroup !== false) {
@@ -144,18 +139,62 @@ defineProto(OptionGroup.inherits(Composite), {
     return "";
   },
 
-  add(child) { return this.childPanel.add(child); },
+  add(child) { this.dirty = true; return this.childPanel.add(child); },
   superAdd(child) { return super.add(child); },
+
+  integrateChildren(rootNode = this.childPanel.element) {
+    let nodeList = [rootNode, ...rootNode.querySelectorAll('*')];
+
+    for (let n of nodeList) {
+
+      if (typeof n.widget == "undefined") { continue; }
+
+      let opt = Widget.findNearestParentOfType(OptionWidget, n.widget);
+      let group = Widget.findNearestParentOfType(OptionGroup, opt.parent);
+      if (opt !== false && group == this) {
+        OptionAction.addListener(group.element, opt);
+        this[opt.id] = opt;
+        opt.key = this.key + '.' + opt.id;
+      } else if (n.widget instanceof OptionGroup) {
+        let addedGroup = n.widget;
+        let parentGroup = Widget.findNearestParentOfType(OptionGroup, addedGroup.parent);
+        if (parentGroup == this) {
+          OptionAction.addListener(this.element, addedGroup);
+          this[addedGroup.id] = addedGroup;
+        }
+      }
+    }
+    return this;
+  },
 
   get element() {
     return lazyGet(this, 'element', () => {
       let elmnt = super.element;
       elmnt.className = "optionGroup"
+
+      //this.integrateChildren(this.childPanel.element);
+      this.init();
+      //mutationobserver für den fall, dass nachträglich etwas außerhalb von group.add dazugefügt wird
+      this.mutationObserver = new MutationObserver((changeList) => {
+        this.dirty = true;
+        this.init();
+      });
+      this.mutationObserver.observe(this.childPanel.element, { childList: true, subtree: true });
+
       return elmnt;
     });
   },
 
-  init() { return this.element.dispatchEvent(OptionAction.INIT()), this; },
+  init() {
+    if (!this.dirty) {
+      return this;
+    }
+    OptionAction.clearListener(this.element);
+    //TODO: remove old keys
+    this.integrateChildren();
+    this.dirty = false;
+    return this.element.dispatchEvent(OptionAction.INIT()), this;
+  },
   save() { this.element.dispatchEvent(OptionAction.SAVE()); },
   revert() { this.element.dispatchEvent(OptionAction.REVERT()); },
 }, (type) => {
@@ -172,12 +211,12 @@ function TextOption(keyName, label, aDefault, aType) {
 }
 defineProto(TextOption.inherits(OptionWidget), {
   generateElement(targetDoc) {
-    this.input = new LabeledText(this.label, {className: 'textOption'}).inDoc(targetDoc).htmlProxy();
+    this.input = new LabeledText(this.label, { className: 'textOption' }).inDoc(targetDoc).htmlProxy();
     this.trackChanges(this.input);
     return this.input;
   }
 }, (type) => {
-  type[Style.ELEMENT_NAME] = LabeledText[Style.ELEMENT_NAME]+".textOption";
+  type[Style.ELEMENT_NAME] = LabeledText[Style.ELEMENT_NAME] + ".textOption";
 });
 
 // ----- CHECKBOX -----
@@ -189,12 +228,12 @@ function CheckOption(keyName, label, aDefault = false) {
 }
 defineProto(CheckOption.inherits(OptionWidget), {
   generateElement(targetDoc) {
-    this.input = new LabeledCheckbox(this.label, {className: 'checkOption'}).inDoc(targetDoc).htmlProxy();
+    this.input = new LabeledCheckbox(this.label, { className: 'checkOption' }).inDoc(targetDoc).htmlProxy();
     this.trackChanges(this.input);
     return this.input;
   }
 }, (type) => {
-  type[Style.ELEMENT_NAME] = LabeledCheckbox[Style.ELEMENT_NAME]+'.checkOption';
+  type[Style.ELEMENT_NAME] = LabeledCheckbox[Style.ELEMENT_NAME] + '.checkOption';
 });
 
 // ----- LIST OF RADIOS (mutual exclusive alternative values) -----
