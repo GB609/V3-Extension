@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <style>
+      @viewport{
+        width:device-width;
+      }
+      *{
+        color:white;
+        background-color:black;
+      }
+      a{ color: orange; }
+      body{ 
+        width:100%;
+        height:100%;
+        overflow-y:scroll;
+        margin:0;
+      }
+      /* prevent margin-merge from messing with body height/scrollbars by inserting an inline-block as first element of body */
+      body > :nth-child(1)::before {
+        content: '';
+        margin-top: 0px;
+        display: inline-block;
+      }
+      #content{
+        width: 90%;
+        max-width: 1000px;
+        margin:0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="content">
+      <h1>VZ3-Erweiterungen</h1>
+      Hier gibt es einen reichhaltigen Satz an UI-Verbesserungen und Bequemlichkeitsfunktionen für die VerbrannteZone3.
+      <section>
+        <h2>TL;DR:</h3>
+        <ol>
+          <li>Firefox oder Chrome</li>
+          <li>Userscript-Browserplugin installieren. Empfohlen und getested in FF: ViolentMonkey. "Original" GreaseMonkey funktioniert NICHT, da völlig kaputt und schlecht gewartet.</li>
+          <li>Erweiterung durch Klick auf Link herunterladen: <a href="scripts/V3_Extension.user.js">VZ3-Erweiterung installieren</a></li>
+        </ol>
+      </section>
+      <section>        
+        <h2>Änderungen und Ergänzungen</h2>
+        <p>Dieses Kapitel listet die zur Verfügung stehenden Änderungen kurz auf und enthält, soweit sinnvoll, Screenshots für den vorher-nacher-Vergleich. Die Änderungen sind entweder konfigurierbar oder ganz abschaltbar.</p>
+        <section>
+          <h3>UI</h3>
+          <p>Die Anzeige wurde an verschiedenen Stellen angepasst oder ergänzt</p>
+          <ul>
+            <li>Erweiterung der Links im Hauptfenster. Derzeit wird "nur" "Rohstoffeglobal" rechts neben "Staatsstatistik" platziert, mehr ist in Arbeit.</li>
+            <li>Provinz: Zivil-&gt;Einstellungen wird zu einer modernen Maske mit Dropdowns und Schiebereglern geändert. Dabei werden viele der überlangen Hinweistexte nur bei Auswahl eingeblendet. Hilfreich für kleine Bildschirme.</li>
+            <li>Das Provinzmenü in der Navigation stellt seine Unterpunkte jetzt als Untermenüs auf der gleichen Seite dar. Dadurch entfällt häufiges vor-zurück Navigieren.</li>
+          </ul>
+        </section>
+        <!-- section>
+          <h3>Bedienerleichterungen</h3>
+          <ul>
+            <li></li>
+          </ul>
+      </section -->
+        <section>
+          <h3>Features</h3>
+          <ul>
+            <li>Integration von beliebig vielen speicherbaren Transportaufträgen in die Vorschau. Da jeder Auftrag eine neue Spalte in der Vorschautabelle erzeugt, ist diese Funktion nur bedingt kompatibel mit kleinen Bildschirmen derzeit. An einer Lösung wird gearbeitet.</li>
+            <li>Die Tabelle von Rohstoffeglobal bietet eine Analysefunktion zur Berechnung des Gesamt-Warenbedarfs </li>
+          </ul>
+        </section>
+      </section>
+      <section>
+        <h2>Konfiguration</h2>
+        <p>Nahezu jedes Verhalten lässt sich konfigurieren oder ein- und ausschalten. Das Menü dazu findet sich ebenfalls in den Optionen von VZ3 und wird über dem Standardmenü in der Navigation ergänzt.</p>
+      </section>
+    </main>
+  </body>
+</html>

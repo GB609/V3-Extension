@@ -103,7 +103,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>public</directory>
+              <directory>public/scripts</directory>
               <includes>
                 <include>**/*</include>
               </includes>
@@ -126,7 +126,7 @@
               <arguments>
                 <argument>-rfT</argument>
                 <argument>${project.basedir}/target/out</argument>
-                <argument>${project.basedir}/public</argument>
+                <argument>${project.basedir}/public/scripts</argument>
               </arguments>
             </configuration>
           </execution>
