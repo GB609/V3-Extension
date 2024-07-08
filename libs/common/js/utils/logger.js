@@ -34,10 +34,10 @@
       DOM.p()
         .add("Bestimmt, wieviel und detailliert Fehlersuche-Information auf dem Rechner mitgeschnitten wird.").br()
         .add("Die meisten Meldungen werden standardmäßig nicht in der Entwicklerkonsole erscheinen sondern nur für Fehlerberichte zwischengespeichert, falls die Option dazu nicht aktviert ist."),
-      CheckOption('info', 'Informationen', true),
+      CheckOption('info', 'Informationen', false),
       CheckOption('warn', 'Warnmeldungen', true),
       CheckOption('error', 'Ernsthafte Fehler', true),
-      CheckOption('debug', 'Höchster Detailgrad', true),
+      CheckOption('debug', 'Höchster Detailgrad', false),
       DOM.br,
       CheckOption('immediateOutput', 'Ausgabe auch auf Entwicklerkonsole', false)
     ).init();
