@@ -306,19 +306,6 @@ class OptionWidget extends Widget {
   }
 
   // ----- Option functionality related to config setting and value updates -----
-  /*get parent() { return this.#parent; }
-  set parent(aParent) {
-    
-     this.#parent = aParent;
-     let p = Widget.findNearestParentOfType(OptionGroup, this.parent);
-     if (p !== false) {
-       p[this.#ownKey] = this;
-     }
-    this.#parentGroup = p;
-    this.#parentGroup = aParent;
-
-  }*/
-
   trackChanges(htmlElement, prop = 'value', type = 'change') {
     htmlElement.addEventListener(type, (evt) => this.updateCurrent(htmlElement[prop]));
   }
@@ -360,11 +347,6 @@ class OptionWidget extends Widget {
   }
 
   init() {
-    /*this.#parentKey = "";
-    if (this.#parentGroup !== false) {
-      this.#parentKey = this.#parentGroup.key + '.';
-    }
-    this.key = this.#parentKey + this.#ownKey;*/
     this.value = this.current = CFG.get(this.key, this.default);
     this.#updateDisplay();
   }
@@ -400,6 +382,7 @@ class OptionWidget extends Widget {
 
   // ----- DOM element related which will be specific to concrete subtype -----
   generateElement() { return DOM.div({}, this.targetDoc).add(this.label).addText(': ' + this.value); }
+  valueOf(){ return this.value; }
 }
 
 class LabeledText extends Widget {

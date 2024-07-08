@@ -14,8 +14,7 @@
   </parent>
 
   <properties>
-    <includeUrls>/open.php*vw=1*</includeUrls>
-    <excludeUrls>/open.php*noreload=1*</excludeUrls>
+    <includeUrls>/open.php*pansicht=1*</includeUrls>
   </properties>
 
   <dependencies>

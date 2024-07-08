@@ -32,14 +32,14 @@ function StorageBackedDict(aStorage, aPrefix = false) {
    * 
    * @returns String[]
    */
-  function getMatchingFirstLevelKeys(key = _prefix) {
+  function getMatchingFirstLevelKeys(key = _prefix, dict = _values) {
     let firstPath = analyseKeyPath(key).first;
     if (firstPath != _prefix) {
-      return typeof _values[firstPath] == "undefined" ? [] : [firstPath];
+      return typeof dict[firstPath] == "undefined" ? [] : [firstPath];
     }
 
     let result = [];
-    Object.keys(_values).forEach(k => {
+    Object.keys(dict).forEach(k => {
       if (k.startsWith(firstPath)) {
         result.push(k);
       }
@@ -169,7 +169,7 @@ function StorageBackedDict(aStorage, aPrefix = false) {
   this.clear = function(key = _prefix) {
       let keyPath = this.wipeCached(key);
       if(Array.isArray(keyPath) || keyPath == null || keyPath.depth == 1){
-        keyPath ||= getMatchingFirstLevelKeys(key);
+        keyPath ||= getMatchingFirstLevelKeys(key, this.storage);
         keyPath.forEach(k => { this.storage.removeItem(k); });
       } else {
         this.persist(keyPath.first);

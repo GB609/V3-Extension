@@ -200,11 +200,11 @@ if (document.readyState == "complete") {
 }
 }) ();
 
-unsafeWindow.listStorage = function(key, dict = window.localStorage) {
+function listStorage(key, dict = window.localStorage) {
   var KEY_SYM = Symbol.for("KEY");
 
   if (typeof key == "string") {
-    let resultObjs = window.listStorage(key.split('.'));
+    let resultObjs = listStorage(key.split('.'));
     resultObjs.forEach(targetObj => {
       Object.keys(targetObj).forEach(k => {
         console.log(`${targetObj[KEY_SYM]}.${k}`, ":", targetObj[k]);
@@ -225,7 +225,7 @@ unsafeWindow.listStorage = function(key, dict = window.localStorage) {
       found[KEY_SYM] = current;
       return [found];
     } else {
-      let resultObjs = window.listStorage(parts, nextDict);
+      let resultObjs = listStorage(parts, nextDict);
 
       resultObjs.forEach(res => {
         res[KEY_SYM] = current + '.' + res[KEY_SYM];
@@ -236,9 +236,10 @@ unsafeWindow.listStorage = function(key, dict = window.localStorage) {
     let result = [];
     Object.keys(dict).forEach(k => {
       if (k.startsWith(current)) {
-        result = result.concat(window.listStorage([k, ...parts], dict));
+        result = result.concat(listStorage([k, ...parts], dict));
       }
     });
     return result;
   }
 }
+unsafeWindow.listStorage = listStorage;

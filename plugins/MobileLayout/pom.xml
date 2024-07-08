@@ -13,7 +13,7 @@
 	</parent>
 
 	<properties>
-		<includeUrls>/einstellungen.php*</includeUrls>
+		<includeUrls>/*</includeUrls>
 	</properties>
 
 	<dependencies>

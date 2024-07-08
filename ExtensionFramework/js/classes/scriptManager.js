@@ -166,9 +166,15 @@ var ScriptManager;
     this.getForLocation = function(aUrl) {
       let allMatched = CACHE.get(this.KEY_LOCATION_MATCH, {});
       let url = new URL(aUrl);
-      aUrl = `${url.origin}${url.pathname}`;
-      
-      if(!Array.isArray(allMatched[aUrl])){
+      /*
+      FIXME: cache macht probleme wenn überall-plugins wie layout auf seiten matchen,
+      die include-unterschiede bei &GET parametern in der selben seite machen.
+      wird eine nicht-gematchte url zuerst aufgerufen, wird der cache mit nur den überall-plugins
+      drin angelegt. bei weiteren prüfungen im cache wird dann ohne die parameter nachgeschlagen und
+      die parameter nicht mehr berücksichtigt 
+      */
+      if(!Array.isArray(allMatched[url.pathname])){
+        aUrl = `${url.origin}${url.pathname}`;
       	var matched = [];
 	      _scripts.forEach(function(sname, script) {
 	        if (!script.enabled) {
@@ -182,12 +188,12 @@ var ScriptManager;
 	          matched.push(script.name);
 	        }
 	      });
-	      allMatched[aUrl] = matched;
+	      allMatched[url.pathname] = matched;
 	      CACHE.set(this.KEY_LOCATION_MATCH, allMatched);
       }
       
       var matchedScripts = [];
-      allMatched[aUrl].forEach(function(val, idx){
+      allMatched[url.pathname].forEach(function(val, idx){
       	matchedScripts.push(_scripts[val]);
       });
       return matchedScripts;
