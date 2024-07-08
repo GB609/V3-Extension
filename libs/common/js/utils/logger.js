@@ -51,7 +51,12 @@
           this._logs.push(new LogEntry('debug', 'Dropped old log entries'))
         }
 
-        this._logs.push(new LogEntry(aLevel, aMessage));
+        let entry = new LogEntry(aLevel, aMessage);
+        this._logs.push(entry);
+        
+        if(this.OPTIONS.immediateOutput == true){
+          console[aLevel](...entry.consoleArgArray());
+        }
       }
     }
 

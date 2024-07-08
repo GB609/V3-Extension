@@ -98,80 +98,80 @@
         while (d.nodeName.toLowerCase() != "tr") {
           d = d.parentElement
         }
-        d.id = "section."+link.name;
+        d.id = "section." + link.name;
         d.link = link;
       }
-      
-      let tbody = {link: null};
-      for(let r of Array.from(buildTable.rows)){
-        if(typeof r.link != "undefined" && r.link != tbody.link){
-          tbody = DOM.tbody({link:r.link, id:'tbody.'+r.link.name});
+
+      let tbody = { link: null };
+      for (let r of Array.from(buildTable.rows)) {
+        if (typeof r.link != "undefined" && r.link != tbody.link) {
+          tbody = DOM.tbody({ link: r.link, id: 'tbody.' + r.link.name });
           buildTable.add(tbody);
         }
         tbody.add(r);
       }
-      
+
       let filter = quickTable.querySelectorAll('a[href]');
       quickTable.rows[1].parentElement.addBefore(quickTable.rows[1], DOM.tr().add(
-        DOM.td({class:'inboxhleft', bgcolor:'#232323'}).add(DOM.a({href:'#', isFilter:true}).addText('Alle'))
+        DOM.td({ class: 'inboxhleft', bgcolor: '#232323' }).add(DOM.a({ href: '#', isFilter: true }).addText('Alle'))
       ));
-      for(let f of filter){ f.href = "#"; f.isFilter = true; }
+      for (let f of filter) { f.href = "#"; f.isFilter = true; }
       let filterStyle = new Style().insertInto(document.body).htmlProxy();
-      quickTable.addEventListener('click', (evt)=>{
-        if(!evt.target.isFilter)
+      quickTable.addEventListener('click', (evt) => {
+        if (!evt.target.isFilter)
           return;
-                
+
         let clicked = evt.target.innerText;
-        if(clicked == "Alle")
+        if (clicked == "Alle")
           filterStyle.textContent = "";
         else
           filterStyle.textContent = `tbody[id^="tbody"]:not([id$="${clicked}"]) {display: none;}`
-      });      
+      });
     }
-  },
+  }
 
-    this.einstellungen_php = function() {
-      if (OPTIONS.MOBILE.settings != true) {
-        return;
+  this.einstellungen_php = function() {
+    if (OPTIONS.MOBILE.settings != true) {
+      return;
+    }
+
+    var template = TEMPLATE.asText(curLocId);
+
+    var existingForm = DOM.byTag("form")[0];
+    var inputs = DOM.byTag("input", existingForm);
+    var replacements = {};
+    for (var i = 0; i < inputs.length; i++) {
+      var input = inputs[i];
+      var inputVarName;
+      var inputValue = '';
+      switch (input.type) {
+        case "radio":
+          inputVarName = input.name + input.value;
+          inputValue = input.checked ? 'selected="selected"' : '';
+          break;
+
+        case "checkbox":
+          inputVarName = input.name;
+          inputValue = input.checked ? 'checked="checked"' : '';
+          break;
+
+        case "text":
+        case "number":
+          inputVarName = input.name;
+          inputValue = input.value;
+          break;
+
+        default:
+          continue;
       }
 
-      var template = TEMPLATE.asText(curLocId);
-
-      var existingForm = DOM.byTag("form")[0];
-      var inputs = DOM.byTag("input", existingForm);
-      var replacements = {};
-      for (var i = 0; i < inputs.length; i++) {
-        var input = inputs[i];
-        var inputVarName;
-        var inputValue = '';
-        switch (input.type) {
-          case "radio":
-            inputVarName = input.name + input.value;
-            inputValue = input.checked ? 'selected="selected"' : '';
-            break;
-
-          case "checkbox":
-            inputVarName = input.name;
-            inputValue = input.checked ? 'checked="checked"' : '';
-            break;
-
-          case "text":
-          case "number":
-            inputVarName = input.name;
-            inputValue = input.value;
-            break;
-
-          default:
-            continue;
-        }
-
-        replacements[inputVarName] = inputValue;
-      }
-      var replaced = replaceVars(replacements, template);
-      var targetElement = existingForm.parentElement;
-      targetElement.removeChild(existingForm);
-      TEMPLATE.injectSource(targetElement, replaced);
-    };
+      replacements[inputVarName] = inputValue;
+    }
+    var replaced = replaceVars(replacements, template);
+    var targetElement = existingForm.parentElement;
+    targetElement.removeChild(existingForm);
+    TEMPLATE.injectSource(targetElement, replaced);
+  };
 
   let plugin_Mobile = new Plugin('${artifactId}', {
     title: 'UI Anpassungen',
