@@ -64,7 +64,7 @@
     let buildTable = document.body.querySelector("body > :nth-child(2 of table)");
     buildTable.id = "build.listing";
 
-    if (OPTIONS.PROV.hideUnavailable = true) {
+    if (OPTIONS.PROV.hideUnavailable == true) {
       let toggleStyle = new Style(".hideUnavailable{ display: none; }").htmlProxy();
       document.body.add(toggleStyle);
 
