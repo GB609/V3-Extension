@@ -178,11 +178,11 @@
       toggleVisibility(this.nextElementSibling);
     }, true);
 
-    targetDiv.appendChild(favorites);
-    targetDiv.appendChild(FAV_UL);
+    targetDiv.add(favorites);
+    targetDiv.add(FAV_UL);
 
     var provAnsicht = menuLinks["Provinzansicht"];
-    targetDiv.appendChild(provAnsicht);
+    targetDiv.add(provAnsicht);
     provAnsicht.setAttribute("class", "aSpacing");
     provAnsicht.style.display = "block";
 
@@ -190,11 +190,11 @@
       "style": "display:block;",
       "class": "aSpacing"
     }).addText("Rest:");
-    targetDiv.appendChild(REST_MARKER);
+    targetDiv.add(REST_MARKER);
 
     targetDiv.addBefore(
-      new Style(".aSpacing {margin:0;margin-top:10px;display:inline-block;} li {margin: 5px 0;}"),
-      targetDiv.firstChild
+      targetDiv.firstChild,
+      new Style(".aSpacing {margin:0;margin-top:10px;display:inline-block;} li {margin: 5px 0;}")
     );
 
     sourceDiv.style.display = "none";
