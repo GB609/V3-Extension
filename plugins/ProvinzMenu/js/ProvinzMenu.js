@@ -162,15 +162,23 @@
   });
 
   function buildMenu() {
-    document.head.add(new Style(TEMPLATE.asText('shortLinkTableStyle')));
+    let shortLinks = document.querySelector('body > .shortlinkborder');    
+    document.head.add(new Style(TEMPLATE.asText('shortLinkTableStyle'))
+      .addRule("body{height:100vh; overflow:hidden;}")
+      .addRule(`#menuContainer{
+        overflow-y: scroll;
+        margin-right:-10px;
+        width:100%; height:calc(100vh - ${shortLinks.clientHeight}px);
+      }`)
+    );
+    let menuLinks = DOM.collectionAsMap(DOM.byTag("a", sourceDiv));
 
-    var menuLinks = DOM.collectionAsMap(DOM.byTag("a", sourceDiv));
-
-    var targetDiv = DOM.div({
-      "class": sourceDiv.getAttribute("class")
+    let targetDiv = DOM.div({
+      id: "menuContainer",
+      "class": sourceDiv.getAttribute("class") + ' naviPanel'
     });
 
-    var favorites = DOM.a({
+    let favorites = DOM.a({
       "href": "javascript:;",
       "style": "display:block;"
     }).addText("Favoriten");
@@ -181,12 +189,12 @@
     targetDiv.add(favorites);
     targetDiv.add(FAV_UL);
 
-    var provAnsicht = menuLinks["Provinzansicht"];
+    let provAnsicht = menuLinks["Provinzansicht"];
     targetDiv.add(provAnsicht);
     provAnsicht.setAttribute("class", "aSpacing");
     provAnsicht.style.display = "block";
 
-    var REST_MARKER = DOM.span({
+    let REST_MARKER = DOM.span({
       "style": "display:block;",
       "class": "aSpacing"
     }).addText("Rest:");
