@@ -162,7 +162,7 @@
   });
 
   function buildMenu() {
-    let shortLinks = document.querySelector('body > .shortlinkborder');    
+    let shortLinks = document.querySelector('body .shortlinkborder').parentElement;
     document.head.add(new Style(TEMPLATE.asText('shortLinkTableStyle'))
       .addRule("body{height:100vh; overflow:hidden;}")
       .addRule(`#menuContainer{
