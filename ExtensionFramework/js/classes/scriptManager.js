@@ -166,14 +166,8 @@ var ScriptManager;
     this.getForLocation = function(aUrl) {
       let allMatched = CACHE.get(this.KEY_LOCATION_MATCH, {});
       let url = new URL(aUrl);
-      let cacheKey = `${url.pathname}+${url.search}`;
-      /*
-      FIXME: cache macht probleme wenn überall-plugins wie layout auf seiten matchen,
-      die include-unterschiede bei &GET parametern in der selben seite machen.
-      wird eine nicht-gematchte url zuerst aufgerufen, wird der cache mit nur den überall-plugins
-      drin angelegt. bei weiteren prüfungen im cache wird dann ohne die parameter nachgeschlagen und
-      die parameter nicht mehr berücksichtigt 
-      */
+      let cacheKey = `${url.pathname}${url.search}`;
+     
       if(!Array.isArray(allMatched[cacheKey])){
         aUrl = url.href;
       	var matched = [];
