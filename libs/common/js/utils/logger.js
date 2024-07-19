@@ -88,7 +88,7 @@
   }
 
   if (window.self == window.top) {
-    console.info(window.location.href, "initiating LOGGER");
+    console.debug(window.location.href, "initiating LOGGER");
     LOGGER = new _LOGGER();
     window.LOGGER = LOGGER;
   } else if (window.top.LOGGER && window.top != window.self) {
