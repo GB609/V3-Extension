@@ -25,9 +25,12 @@ class TransportUpdatedEvent extends Event {
 
   var OPTIONS = OptionGroup("TP", 'Optionen: Vorschau-Transport',
     new Style().ruleFor(CheckOption, 'display:block}'), 
-    DOM.p().add("Mit dieser Erweiterung können Transportaufträge von und zu einer Provinz direkt in der Vorschau erzeugt, gespeichert und ausgeführt werden."),
+    DOM.p()
+      .add("Mit dieser Erweiterung können Transportaufträge von und zu einer Provinz direkt in der Vorschau erzeugt, gespeichert und ausgeführt werden.").br()
+      .add("Diese Funktion ist völlig unabhängig vom VZ3-internen automatischen Transportsystem.").br()
+      .add("Weitere Einstellungsmöglichkeiten sind gerade in der Entwicklung."),
     CheckOption("showReport", "Transportbericht anzeigen", false),
-    CheckOption("reloadAfterTransport", "Neu laden nach Transport", false));
+    CheckOption("reloadAfterTransport", "Vorschau nach Transport zur Neuberechnung automatisch neu laden", false));
 
   var SET_KEY = "TP_" + CFG.CURRENT_PROV;
   var SETTING = CFG.get(SET_KEY, []);

@@ -1,11 +1,13 @@
 window.TEMPLATE = function(){
 	return {
+    forPlugin : function(prefix){ return Object.assign(Object.create(this), {prefix:prefix}); },
+    
 	    /*
 	   * arg: name ohne prefix
 	   */
 	  asText : function(tplName) {
-	    var templateText = null;
-	    let prefix = unsafeWindow.PLUGIN_PREFIX + (unsafeWindow.PLUGIN_PREFIX.length > 0 ? '/' : '')
+	    let templateText = null;
+	    let prefix = determinePrefix(this);
 	    tplName = "tpl_" + prefix + tplName;
 	    try {
 	      templateText = GM_getResourceText(tplName);
@@ -44,6 +46,11 @@ window.TEMPLATE = function(){
 	    runScripts(elementToInject);
 	  }
 	};
+	
+	function determinePrefix(tplInstance){
+    let prefix = tplInstance.prefix || unsafeWindow.PLUGIN_PREFIX || '';
+    return prefix.length > 0 ? prefix + '/' : '';
+  }
   
   function parseSource(aSource, containerAttributes){
     var newDiv = DOM.div(containerAttributes);

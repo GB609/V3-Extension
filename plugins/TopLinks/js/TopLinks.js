@@ -23,6 +23,7 @@
     doc.head.appendChild(customStyle.addText(naviCssScript));
 
     var newDiv = DOM.div({
+      id: 'topLinks_globalRow',
       'style' : 'position:absolute; top:5px; left:310px; display:inline-block; width:calc(100% - 490px);'
     });
     links.vztime.parentElement.insertBefore(newDiv, links.vztime);

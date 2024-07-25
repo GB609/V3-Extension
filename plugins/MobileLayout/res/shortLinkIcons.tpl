@@ -1,14 +1,3 @@
-table.shortlinkborder td{
-  padding:0px !important;
-}
-
-table.shortlinkborder a{
-  display:inline-block;
-  width:30px !important;
-  height:30px !important;
-  margin:0px !important;
-}
-
 table.shortlinkborder a{
   color:transparent !important;
 }

@@ -44,14 +44,14 @@
 
     this._logs = entryCache;
 
-    function addEntry(aLevel, aMessage) {
+    function addEntry(aLevel, aMessage = []) {
       if (this.OPTIONS[aLevel].value) {
         if (this._logs.length > 50) {
           this._logs.length = 0;
           this._logs.push(new LogEntry('debug', 'Dropped old log entries'))
         }
 
-        let entry = new LogEntry(aLevel, aMessage);
+        let entry = new LogEntry(aLevel, ...aMessage);
         this._logs.push(entry);
         
         if(this.OPTIONS.immediateOutput == true){

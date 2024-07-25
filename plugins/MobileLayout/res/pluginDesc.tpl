@@ -1,7 +1,7 @@
 <div>
 <p>
 Bietet eine Vielzahl an Optionen, mit denen die Ansicht verändert (und verbessert) werden kann.<br>
-<u>Wichtig: </u>Die meisten der Änderungen wurden für die VZ Oberfäche 'VZ Design Style 2006+' entwickelt und getestet.
+<u>Wichtig:</u> Die meisten der Änderungen wurden für die VZ Oberfäche 'VZ Design Style 2006+' entwickelt und getestet.
 </p>
 <p>
 Die Erweiterungen sollten für die Designs 2001 und 2011 in der Regel ebenfalls funktionieren, es wurde aber nicht alles mit jeder Einstellung getestet.<br>

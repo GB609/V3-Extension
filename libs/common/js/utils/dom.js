@@ -52,7 +52,9 @@ DOM = new Proxy(DOM, {
   get: function(target, name) {
     if (!(name in target)) {
       target[name] = function(attribs = {}, doc = document) {
-        if (attribs.nodeName == "#document") {
+        //if the first argument is a document element, no attributes were given.
+        //swap arguments and provide empty default attribs
+        if (attribs && attribs.nodeName == "#document") {
           return target.elemnt(name, {}, attribs);
         }
         return target.elemnt(name, attribs, doc);

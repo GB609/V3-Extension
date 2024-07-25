@@ -36,10 +36,14 @@ function nonEnumerable(obj, ...properties) {
 class Widget {
   static PROXY_TARGET = Symbol.for("HTML_PROXY_TARGET");
   static PROXY_INSTANCE = Symbol.for("HTML_PROXY_INSTANCE")
+  
+  static #NO_PROXY_PROPS = ["widget", "parent"];
 
   static #keepProperty(me, innerPrio, p) {
     try {
-      return typeof me[p] != "undefined" || typeof innerPrio[p] === "undefined";
+      return Widget.#NO_PROXY_PROPS.includes(p) 
+        || typeof me[p] != "undefined" 
+        || typeof innerPrio[p] === "undefined";
     } catch (e) {
       return true;
     }
@@ -126,6 +130,11 @@ class Widget {
   inDoc(doc) { return this.targetDoc = doc, this; }
 
   insertInto(htmlElement, insertBeforeSibling) {
+    if(this instanceof LabeledRadioGroup){
+      console.log('stop')
+    }
+    
+    
     this.parent = this.widget || htmlElement.widget || htmlElement;
     let element = this.element;
     element.widget = this;
@@ -150,10 +159,45 @@ class Widget {
   }
 
   htmlProxy(create = true) {
-    if (create) {
+    if (create && !this[Widget.PROXY_INSTANCE]) {
       return Widget.delegateProperties(this, this.element);
     }
     return this[Widget.PROXY_INSTANCE] || this;
+  }
+}
+
+class Style extends Widget {
+  static ELEMENT_NAME = Symbol.for("CSS_ELMNT_NAME");
+
+  constructor(content) {
+    super('CSS');
+    this.element = DOM.style({ type: "text/css" });
+    this.element.setAttribute("style", "display: none !important");
+    this.addRule(content);
+  }
+
+  addRule(more = '') {
+    if (more.isEmpty())
+      return this
+
+    this.element.textContent += more + '\n';
+    return this;
+  }
+
+  /**
+   * Uses meta-definitions on Widget subclasses to get correct html element tag names
+   */
+  ruleFor(type, addRestriction = '', body = '') {
+    if (body.length == 0 && addRestriction.length > 0) {
+      body = addRestriction;
+      addRestriction = '';
+    }
+
+    if (typeof type[Style.ELEMENT_NAME] == "undefined") {
+      return this;
+    }
+
+    return this.addRule(`${type[Style.ELEMENT_NAME]}${addRestriction} {${body}}`);
   }
 }
 
@@ -196,16 +240,18 @@ class Composite extends Widget {
  * a visually separated group with its own borders and title
  */
 class BorderedGroup extends Composite {
+  static [Style.ELEMENT_NAME] = '.borderedGroup';
+    
   constructor(aTitle) {
     super(aTitle);
-    super.add(DOM.h3({
+    super.add(DOM.h4({
       style: {
         position: 'absolute',
         backgroundColor: 'black',
         display: 'inline-block',
-        padding: '0px 10px',
+        padding: '0px 5px',
         left: '15px',
-        top: '-12px',
+        top: '-0.5em',
         color: 'white',
         margin: '0'
       }
@@ -214,6 +260,7 @@ class BorderedGroup extends Composite {
 
   get element() {
     let ele = super.element;
+    ele.className = 'borderedGroup';
     //parent container gets some extra style
     Object.assign(ele.style, {
       border: '1px dotted white',
@@ -221,45 +268,9 @@ class BorderedGroup extends Composite {
       borderRadius: '10px',
       position: 'relative',
       margin: '10px',
-      color: 'white',
       padding: '10px'
     })
     return ele;
-  }
-}
-
-class Style extends Widget {
-  static ELEMENT_NAME = Symbol.for("CSS_ELMNT_NAME");
-
-  constructor(content) {
-    super('CSS');
-    this.element = DOM.style({ type: "text/css" });
-    this.element.setAttribute("style", "display: none !important");
-    this.addRule(content);
-  }
-
-  addRule(more = '') {
-    if (more.isEmpty())
-      return this
-
-    this.element.textContent += more + '\n';
-    return this;
-  }
-
-  /**
-   * Uses meta-definitions on Widget subclasses to get correct html element tag names
-   */
-  ruleFor(type, addRestriction = '', body = '') {
-    if (body.length == 0 && addRestriction.length > 0) {
-      body = addRestriction;
-      addRestriction = '';
-    }
-
-    if (typeof type[Style.ELEMENT_NAME] == "undefined") {
-      return this;
-    }
-
-    return this.addRule(`${type[Style.ELEMENT_NAME]}${addRestriction} {${body}}`);
   }
 }
 
@@ -414,6 +425,9 @@ class LabeledCheckbox extends Widget {
   get element() {
     return lazyGet(this, "element", () => {
       this.input = DOM.input({ type: 'checkbox' }, this.targetDoc);
+      if(typeof this.label == "string"){
+        this.label = DOM.span().addText(this.label);
+      }
       let label = DOM.label({ kind: 'check' }, this.targetDoc).add(this.input, " ", this.label);
       return Widget.delegateProperties(label, this.input);
     });
@@ -433,7 +447,7 @@ function Entry(aKey, aValue, text = aValue, preselected = false) {
     this.text = text;
     this.selected = preselected;
   } else {
-    return new Entry(aKey, aValue, text);
+    return new Entry(aKey, aValue, text, preselected);
   }
 }
 
@@ -447,21 +461,28 @@ function Entry(aKey, aValue, text = aValue, preselected = false) {
  * - text: what to display to the user. Defaults to value
  */
 class LabeledRadioGroup extends Composite {
+  static [Style.ELEMENT_NAME] = 'div[kind="radioGroup"]'
 
   #isConstructing = true;
   #radios = {};
 
   constructor(groupName, title, attributes = {}, ...entries) {
-    super(title, attributes);
+    super(title);
     this.groupName = groupName;
 
-    if (typeof this.label != "undefined") {
-      super.add((doc) => {
-        return DOM.h3({}, doc).add(this.label);
-      });
+    if (typeof this.label != "undefined" && this.label != null) {
+      super.add((doc) => { return DOM.u({}, doc).add(this.label+':'); });
     }
+    super.add(new Style()
+      .addRule("u{display:block;}")
+      .addRule("label{display:inline-block;white-space:nowrap;}")
+      .addRule("label span{display: inline-block; white-space:wrap;vertical-align:top;}")
+    );
+    
     entries.forEach(this.add);
     this.#isConstructing = false;
+    this.attributes(attributes);
+    this.element.setAttribute("kind", "radioGroup");
   }
 
   add(entry) {
@@ -485,7 +506,7 @@ class LabeledRadioGroup extends Composite {
       value: entry.value
     }, doc);
     if (entry.selected) {
-      radio.setAttribute("selected", "selected");
+      radio.setAttribute("checked", "checked");
     }
 
     this.#radios[entry.value] = radio;
@@ -494,12 +515,8 @@ class LabeledRadioGroup extends Composite {
   }
 
   get value() {
-    for (r in Object.values(this.#radios)) {
-      if (r.checked) {
-        return r.value;
-      }
-    }
-    return undefined;
+    let checked = this.element.querySelector("input:checked");
+    return checked == null ? undefined : checked.value;
   }
 
   set value(newVal) {

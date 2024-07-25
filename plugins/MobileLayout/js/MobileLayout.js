@@ -1,5 +1,6 @@
-(function() {
+(function(TEMPLATE) {
 
+  var HOOKS = this;
   var OPTIONS = OptionGroup('UI', 'Optionen: UI Anpassungen',
     TEMPLATE.asDom('pluginDesc'),
     new Style()
@@ -13,6 +14,14 @@
 
     OptionGroup('PROV', false,
       DOM.h4().add('In Provinzen'),
+      new BorderedGroup('Navigation')
+        .add(RadioSelectionOption("shortLinkTable", "Minilink-Tabelle", [
+          Entry('', 'icons', 'Bilder verwenden', true),
+          Entry('', 'enlargeLinks', 'Links vergrößern'),
+          Entry('', 'no-mods', 'unberührt lassen'),
+          Entry('', 'hide', 'ausblenden')
+        ])),
+      new BorderedGroup('Ansicht'),
       new BorderedGroup('Baumenü')
         .add(CheckOption('hideUnavailable', 'Unbaubares ausblenden (Uniques, Küste/Land, betrifft NICHT fehlendes Material)', true))
         .add(CheckOption('categoryAsFilter', 'Kategorie-Links in Filter umwandeln'), true)
@@ -35,8 +44,8 @@
   var curLocId = curLoc.replace(".", "_");
 
   function replaceVars(varList, target) {
-    for (var key in varList) {
-      var pattern = new RegExp("{{" + key + "}}", 'g');
+    for (let key in varList) {
+      let pattern = new RegExp("{{" + key + "}}", 'g');
       target = target.replace(pattern, varList[key]);
     }
 
@@ -135,15 +144,15 @@
       return;
     }
 
-    var template = TEMPLATE.asText(curLocId);
+    let template = TEMPLATE.asText(curLocId);
 
-    var existingForm = DOM.byTag("form")[0];
-    var inputs = DOM.byTag("input", existingForm);
-    var replacements = {};
-    for (var i = 0; i < inputs.length; i++) {
-      var input = inputs[i];
-      var inputVarName;
-      var inputValue = '';
+    let existingForm = DOM.byTag("form")[0];
+    let inputs = DOM.byTag("input", existingForm);
+    let replacements = {};
+    for (let i = 0; i < inputs.length; i++) {
+      let input = inputs[i];
+      let inputVarName;
+      let inputValue = '';
       switch (input.type) {
         case "radio":
           inputVarName = input.name + input.value;
@@ -167,17 +176,61 @@
 
       replacements[inputVarName] = inputValue;
     }
-    var replaced = replaceVars(replacements, template);
-    var targetElement = existingForm.parentElement;
+    let replaced = replaceVars(replacements, template);
+    let targetElement = existingForm.parentElement;
     targetElement.removeChild(existingForm);
     TEMPLATE.injectSource(targetElement, replaced);
   };
+
+  this.open_php = function() {
+    let style = new Style();
+    document.head.add(style);
+    switch (OPTIONS.PROV.shortLinkTable.valueOf()) {
+      case 'icons':
+        style.addRule(TEMPLATE.asText('shortLinkIcons'));
+      case 'enlargeLinks':
+        style.addRule(`
+          table.shortlinkborder td{
+            padding:0px !important;
+          }
+          
+          table.shortlinkborder a{
+            display:inline-block;
+            width:30px !important;
+            height:30px !important;
+            margin:0px !important;
+            font-size: 1.5em !important;
+          }`
+        );
+                
+        break;
+        
+      case 'hide':
+        style.addRule("table.shortlinkborder{display: none !important;}");
+        break;
+        
+      //no default on purpose - do nothing if not specified
+    }
+  }
+
+  function adjustPage() {
+    document.head.add(DOM.meta({ name: "viewport", content: "width=device-width" }));
+    for (let i = 0; i < window.frames.length; i++) {
+      let frameEle = window.frames[i].frameElement;
+      let parent = frameEle.parentElement;
+      parent.setAttribute("id", "frameDiv_" + frameEle.getAttribute("name"));
+    }
+
+    if (HOOKS[curLocId]) {
+      HOOKS[curLocId]();
+    }
+  }
 
   let plugin_Mobile = new Plugin('${artifactId}', {
     title: 'UI Anpassungen',
     options: OPTIONS,
     eventListener: [],
-    execute: (this[curLocId] || function() { })
+    execute: adjustPage
   });
   return plugin_Mobile.run();
-}).call({});
+}).call({}, TEMPLATE.forPlugin('${artifactId}'));

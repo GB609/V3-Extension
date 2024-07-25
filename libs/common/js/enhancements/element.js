@@ -103,6 +103,8 @@ Object.defineProperties(Element.prototype, {
       }
 
       element = element.pop();
+      if(typeof element == "undefined") return;
+      
       if (Array.isArray(element)) {
         for (let e of element) { this.addBefore(other, e); }
         return this;

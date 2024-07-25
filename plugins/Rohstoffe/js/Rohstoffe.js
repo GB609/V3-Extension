@@ -1,4 +1,4 @@
-(function() {
+(function(TEMPLATE) {
 	var RES_TABLE = DOM.byTag('table')[0];
 	
 	var OPTIONS = OptionGroup('RESGLB', "Optionen: Rohstoffeglobal +/-",
@@ -108,4 +108,4 @@
   });
 
   return plugin_Rohstoffe.run();
-})();
+})(TEMPLATE.forPlugin('${artifactId}'));

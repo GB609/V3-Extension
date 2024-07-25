@@ -247,16 +247,16 @@ function RadioSelectionOption(keyName, label, aValues) {
   if (!(this instanceof RadioSelectionOption)) {
     return new RadioSelectionOption(keyName, label, aValues);
   }
-  return RadioSelectionOption.initWithSuper(label, keyName, function() {
+  return RadioSelectionOption.initWithSuper([label, keyName], function() {
     this.valueList = aValues;
-  });
+  }).htmlProxy();
 }
 defineProto(RadioSelectionOption.inherits(OptionWidget), {
   generateElement(targetDoc) {
     this.input = new LabeledRadioGroup(this.key, this.label).inDoc(targetDoc).htmlProxy();
     this.trackChanges(this.input);
     this.valueList.forEach(opt => {
-      opt.id = this.key + "." + opt.value;
+      opt.key = this.key + "." + opt.value;
       this.input.add(opt);
     });
     return this.input;

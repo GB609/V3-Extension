@@ -129,6 +129,7 @@ function StorageBackedDict(aStorage, aPrefix = false) {
     }
 
     let keys = analyseKeyPath(key, true);
+    this.get(keys.first, {});
     keys.resolveToDeepestParent(_values, {})[keys.lastOnly] = value;
 
     if (!this.txKey) {
