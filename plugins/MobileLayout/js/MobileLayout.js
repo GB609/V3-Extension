@@ -214,7 +214,7 @@
   }
 
   function adjustPage() {
-    document.head.add(DOM.meta({ name: "viewport", content: "width=device-width, height=device-height" }));
+    //document.head.add(DOM.meta({ name: "viewport", content: "width=device-width, height=device-height" }));
     for (let i = 0; i < window.frames.length; i++) {
       let frameEle = window.frames[i].frameElement;
       let parent = frameEle.parentElement;
