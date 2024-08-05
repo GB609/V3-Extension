@@ -103,7 +103,7 @@
       "links": new LinkSet([
         new Link("Provinz Info", null, false, "provinzinfo.php?provinz={{coord}}"),
         new Link("Aktuelles", null, true, "aktuelles.php"), 
-        new Link("Vorschau", null, true, "vorschau.php?provinz={{coord}}"),
+        new Link("Vorschau", null, true, "vorschau.php?provinz={{coord}}&stunden=24"),
         new Link("Provinzlager", null, false, "lager.php?p1={{coord}}"),
         new Link("Geb\u00e4udeliste", null, false, "bebauung.php?p1={{coord}}")])
     },
