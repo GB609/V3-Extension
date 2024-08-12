@@ -262,8 +262,10 @@ class TransportUpdatedEvent extends Event {
   }
 
   function updateCacheFromVs(vsTable, stockPropName, resPropName = "reserve") {
-    var res = vsTable.resources;
-    var usage = CACHE.get("resUsage." + vsTable.provName, {});
+    let res = vsTable.resources;
+    //TODO: Klasse für resCache Eintrag einführen, die einen besseren dirty-check machen kann als den gesamten String zu vergleichen
+    let usage = CACHE.get("resUsage." + vsTable.provName, {});
+    let contentBefore = JSON.stringify(usage);
     res.forEach(function(key, val) {
       usage[key] = {
         st: val[stockPropName], //stock
@@ -271,7 +273,9 @@ class TransportUpdatedEvent extends Event {
         res: val[resPropName] //komplette reserve inkl. markt
       };
     });
-    usage['#LAST_UPDATED'] = new Date().getTime();
+    if(JSON.stringify(usage) != contentBefore){
+      usage['#LAST_UPDATED'] = new Date().getTime();
+    }
     CACHE.set("resUsage." + vsTable.provName, usage);
   }
 
