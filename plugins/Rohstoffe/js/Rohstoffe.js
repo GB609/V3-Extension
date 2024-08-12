@@ -64,8 +64,15 @@
     TEMPLATE.inject(RES_TABLE.parentElement, "tableDescription", null, RES_TABLE);
   }
 
+  function reloadProvCache(coord){
+    //not implemented yet
+    return CACHE.get('resUsage.'+coord, {});
+  }
+
   function retrieveAndShowResourceData() {
     try {
+      let now = new Date().getTime();
+	    
       let provColumns = {}; 
       let links = DOM.byTag("a", RES_TABLE.rows[0]);
       let pattern = /(\w+)[.\s]*\((\d+\/\d+)\)/;
@@ -76,7 +83,11 @@
         let next = {"name" : data[1], "coord" : data[2]};
         provColumns[next.coord] = i+1;
                   
-        CACHE.get('resUsage.'+next.coord, {}).forEach((key, val) => {
+        let prov = CACHE.get('resUsage.'+next.coord, {});
+        if(prov['#LAST_UPDATED'] > now){
+          prov = reloadProvCache(next.coord);
+        }
+        prov.forEach((key, val) => {
           if (!globalData[key]) {
           	globalData[key] = new GlobalResource(key);
           }
