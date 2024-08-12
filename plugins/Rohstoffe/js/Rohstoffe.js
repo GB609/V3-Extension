@@ -2,7 +2,11 @@
 	var RES_TABLE = DOM.byTag('table')[0];
 	
 	var OPTIONS = OptionGroup('RESGLB', "Optionen: Rohstoffeglobal +/-",
-    TEMPLATE.asDom('pluginDesc')
+    TEMPLATE.asDom('pluginDesc'),
+    new RadioSelectionOption("resUsageMode", "Verbrauchsberechnung", [
+      Entry('', 'sold', 'Industrie + Markteinkauf: Wie Vorschauspalte "in 24 h".\nWegen Vorratskauf des Marktes sind die Zahlen jedoch häufig deutlich höher als der tatsächliche Verbrauch.', true),
+      Entry('', 'marketUsed', 'Industrie + realer Marktverbrauch: Genaue Verbrauchszahlen. Angegebene Überschüsse sind aber u. U. im Marktlager statt dem Provinzlager.')
+    ])
 	).showButtons(false);
 	
 	function withSign(number){
