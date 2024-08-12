@@ -84,7 +84,7 @@
         provColumns[next.coord] = i+1;
                   
         let prov = CACHE.get('resUsage.'+next.coord, {});
-        if(prov['#LAST_UPDATED'] > now){
+        if(prov['#DIRTY'] != false){
           prov = reloadProvCache(next.coord);
         }
         prov.forEach((key, val) => {
