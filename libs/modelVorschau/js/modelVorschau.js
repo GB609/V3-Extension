@@ -101,6 +101,10 @@ window.VorschauTable = class VorschauTable {
     }
   }
 
+  isFullSingleDay(){
+    return this.head.querySelector('*[title*="24 h"]') != null;
+  }
+
   generateHeader(aConfig) {
     var headerClass = this.head.rows[0].firstElementChild.getAttribute('class');
     var td;
