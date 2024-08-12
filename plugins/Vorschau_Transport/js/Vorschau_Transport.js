@@ -271,6 +271,7 @@ class TransportUpdatedEvent extends Event {
         res: val[resPropName] //komplette reserve inkl. markt
       };
     });
+    usage['#LAST_UPDATED'] = new Date().getTime();
     CACHE.set("resUsage." + vsTable.provName, usage);
   }
 
