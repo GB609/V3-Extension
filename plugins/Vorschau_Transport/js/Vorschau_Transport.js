@@ -229,7 +229,9 @@ class TransportUpdatedEvent extends Event {
       return;
     }
 
-    updateCacheFromVs(table, "stock", "reserve");
+    if(table.isFullSingleDay()){
+      updateCacheFromVs(table, "stock", "reserve");
+    }
 
     setupControlDiv(resTable);
 
@@ -262,10 +264,9 @@ class TransportUpdatedEvent extends Event {
   }
 
   function updateCacheFromVs(vsTable, stockPropName, resPropName = "reserve") {
+    LOGGER.debug("refresh resUsage cache");
     let res = vsTable.resources;
-    //TODO: Klasse für resCache Eintrag einführen, die einen besseren dirty-check machen kann als den gesamten String zu vergleichen
     let usage = CACHE.get("resUsage." + vsTable.provName, {});
-    let contentBefore = JSON.stringify(usage);
     res.forEach(function(key, val) {
       usage[key] = {
         st: val[stockPropName], //stock
@@ -273,9 +274,12 @@ class TransportUpdatedEvent extends Event {
         res: val[resPropName] //komplette reserve inkl. markt
       };
     });
-    if(JSON.stringify(usage) != contentBefore){
-      usage['#LAST_UPDATED'] = new Date().getTime();
-    }
+
+    //dirty comes from transports, traders in kontor, butchering, building and loading stuff to/from carts
+    //in theory, modifying routes also changes stock, but since this kinf of stock is not consumable
+    //there is no impact what is available to the market
+    //this flag is more or less useless without hooks to all those pages to actually set it
+    usage['#DIRTY'] = false;
     CACHE.set("resUsage." + vsTable.provName, usage);
   }
 
