@@ -50,6 +50,15 @@ class TransportTask {
         var resultReport = DOM.byAttribute("div", "class", "center", doc.body);
         var isSuccess = resultReport != null && resultReport.innerText.search("transportiert") > -1;
 
+        if(isSuccess){
+          [this.source, this.target].forEach(prov => {
+            let provKey = 'resUsage.' + prov;
+            let cache = CACHE.get(provKey, {});
+            cache['#DIRTY'] = true;
+            CACHE.set(provKey, cache);
+          });
+        }
+
         resultCallback({
           successful : isSuccess,
           report : resultReport,
