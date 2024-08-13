@@ -68,6 +68,20 @@ window.Resource = class Resource extends Serializable {
 
 window.VorschauTable = class VorschauTable {
 
+  static #KNOWN_COLUMNS = {
+    'Rohstoffe' : 'resName', 'Rohstoffe (Marktstände)' : 'resName',
+    'Lager' : 'stock',
+    'Produktion' : 'produced',
+    'erbeutete gefundene Rohstoffe' : 'hunted',
+    'Verbrauch' : 'industryUse',
+    'Verkauf' : 'sold',
+    'Einnahmen' : null, //not interesting (yet)
+    'in 24 h' : 'afterTurn',
+    'Markt' : 'inMarket'
+    'Marktbedarf' : 'marketConsumption',
+    'neu' : 'stock'
+  }
+
   constructor(srcTable, aProvName, modifyTable) {
     this.provName = (aProvName) ? aProvName : CFG.CURRENT_PROV;
 
