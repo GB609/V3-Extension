@@ -258,6 +258,9 @@ defineProto(RadioSelectionOption.inherits(OptionWidget), {
     this.valueList.forEach(opt => {
       opt.key = this.key + "." + opt.value;
       this.input.add(opt);
+      if(opt.selected == true){
+        this.updateCurrent(opt.value);
+      }
     });
     return this.input;
   }
