@@ -130,11 +130,10 @@ class Widget {
   inDoc(doc) { return this.targetDoc = doc, this; }
 
   insertInto(htmlElement, insertBeforeSibling) {
-    if(this instanceof LabeledRadioGroup){
+    /*if(this instanceof LabeledRadioGroup){
       console.log('stop')
-    }
-    
-    
+    }*/
+        
     this.parent = this.widget || htmlElement.widget || htmlElement;
     let element = this.element;
     element.widget = this;
