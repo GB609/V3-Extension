@@ -263,10 +263,21 @@
     sourceDiv.parentElement.removeChild(sourceDiv);
   };
 
+  function decideAction(){
+    let url = document.location.href;
+    if(url.includes("ap=1") && url.includes("vw=1")) {
+      //info-frame mit statistik übersicht. nützlich um cache-infos über AP und anderes zu holen
+      //TODO
+    } else if(url.includes("vw=1")) {
+      // normales provinzmenü
+      buildMenu();
+    }
+  }
+  
   let plugin_Menu = new Plugin("ProvinzMenu", {
     title: 'Provinzmenü',
     options: OPTIONS,
-    execute: buildMenu
+    execute: decideAction
   });
   return plugin_Menu.run();
 })();
