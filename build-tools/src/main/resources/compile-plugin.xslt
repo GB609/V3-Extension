@@ -20,6 +20,10 @@
     <xsl:variable name="nl" select="string('&#xa;')" />
     
 <xsl:variable name="headerEnd">
+// @exclude *v3.verbranntezone.ch/data.php
+// @exclude *v3.verbranntezone.ch/alert.php
+// @exclude *v3.verbranntezone.ch/aktprovinz*
+// @exclude *v3.verbranntezone.ch/loginwerbung.php
 // @grant GM_info
 // @grant GM.info
 // @grant GM_getResourceText
