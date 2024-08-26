@@ -1,0 +1,19 @@
+div.textleft br {
+	height: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+
+div.textleft a {
+	padding: 0.3em;
+	border: outset 2px darkgray;
+	margin-top: 3px;
+	display: inline-block !important;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+div.textleft a:hover {
+	border-style: outset !important;
+	border-color: white;
+}

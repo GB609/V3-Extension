@@ -49,7 +49,7 @@
   };
 
   // index.php kann auch vor login aufgerufen werden. Führe das plugin aber nur aus, wenn eingeloggt.
-  let plugin = new Plugin("TopLinks", {
+  let plugin = new V3Plugin("TopLinks", {
     title: 'Hauptfenster: Links',
     options: OPTIONS
   });

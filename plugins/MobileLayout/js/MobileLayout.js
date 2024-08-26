@@ -28,6 +28,7 @@
     ),
     OptionGroup('TABLES', false,
       DOM.h4().add('Tabellen allgemein'),
+      CheckOption('stickyHeaders', 'Tabellenüberschriften beim Scrollen sichtbar halten', true),
       CheckOption('markFilter', 'Eingestellte Filter bei vor/zurück Navigation merken', false).attributes({ disabled: true }),
       CheckOption('enlargeLinks', 'Links vergrößern', false).attributes({ disabled: true }),
       CheckOption('entryNameAsLink', 'Info-Tabellen: Link/ID spalten ausblenden. Eigentliche Bezeichnung (i.d.R. 3. Spalte) wird zu Link.', false).attributes({ disabled: true })
@@ -42,22 +43,14 @@
 
   var curLoc = window.location.pathname.replace(/\//, '').toLowerCase();
   var curLocId = curLoc.replace(".", "_");
-
-  function replaceVars(varList, target) {
-    for (let key in varList) {
-      let pattern = new RegExp("{{" + key + "}}", 'g');
-      target = target.replace(pattern, varList[key]);
-    }
-
-    return target;
-  }
+  this.stylesheet = new Style();
 
   //  this.provinz_php = function() {
   //
   //  },
 
   this.bauen_php = function() {
-    document.body.addBefore(document.body.firstChild, new Style(
+    this.stylesheet.addRule(
       `body > :nth-child(1 of table){
         background-color:black;
         position:sticky; top:0;
@@ -65,7 +58,7 @@
       body > :nth-child(1 of table) * {
         display: inline-block;
         margin: 1px;
-      }`)
+      }`
     );
 
     let quickTable = document.body.querySelector("body > :nth-child(1 of table)");
@@ -176,20 +169,18 @@
 
       replacements[inputVarName] = inputValue;
     }
-    let replaced = replaceVars(replacements, template);
+    let replaced = TEMPLATE.replaceVars(replacements, template);
     let targetElement = existingForm.parentElement;
     targetElement.removeChild(existingForm);
     TEMPLATE.injectSource(targetElement, replaced);
   };
 
   this.open_php = function() {
-    let style = new Style();
-    document.head.add(style);
     switch (OPTIONS.PROV.shortLinkTable.valueOf()) {
       case 'icons':
-        style.addRule(TEMPLATE.asText('shortLinkIcons'));
+        this.stylesheet.addRule(TEMPLATE.asText('shortLinkIcons.css'));
       case 'enlargeLinks':
-        style.addRule(`
+        this.stylesheet.addRule(`
           table.shortlinkborder td{
             padding:0px !important;
           }
@@ -202,13 +193,13 @@
             font-size: 1.5em !important;
           }`
         );
-                
+
         break;
-        
+
       case 'hide':
-        style.addRule("table.shortlinkborder{display: none !important;}");
+        this.stylesheet.addRule("table.shortlinkborder{display: none !important;}");
         break;
-        
+
       //no default on purpose - do nothing if not specified
     }
   }
@@ -221,12 +212,22 @@
       parent.setAttribute("id", "frameDiv_" + frameEle.getAttribute("name"));
     }
 
+    if (OPTIONS.TABLES.stickyHeaders == true) {
+      HOOKS.stylesheet.ruleFor(DOM.thead, ', table[id] :nth-child(1 of tr)', 'position:sticky; top:0;');
+    }
+
     if (HOOKS[curLocId]) {
       HOOKS[curLocId]();
     }
+
+    document.head.add(HOOKS.stylesheet);
+
+    if (LOGGER.OPTIONS.debug != true) {
+      delete HOOKS.stylesheet;
+    }
   }
 
-  let plugin_Mobile = new Plugin('${artifactId}', {
+  let plugin_Mobile = new V3Plugin('${artifactId}', {
     title: 'UI Anpassungen',
     options: OPTIONS,
     eventListener: [],

@@ -140,6 +140,19 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
+            <id>build-path</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/jsdeps</outputDirectory>
+              <markersDirectory>target/build-path-markers</markersDirectory>
+              <classifier>lib</classifier>
+              <excludes>META-INF/*,META-INF</excludes>
+            </configuration>
+          </execution>
+          <execution>
             <id>compile-dependencies</id>
             <phase>process-resources</phase>
             <goals>

@@ -1,9 +1,10 @@
 var LOGGER = {
   info : function(object) {},
-  warn : function(onject) {},
+  warn : function(object) {},
   error : function(object) {},
   debug : function(object) {},
-  printToConsole : function() {}
+  printToConsole : function() {},
+  doesitwork:function(){}
 };
 
 var TEMPLATE = {
@@ -14,7 +15,7 @@ var TEMPLATE = {
   injectDom : function(parentElement, elementToInject, nextSibling){}
 };
 
-class Plugin{
+class V3Plugin{
   constructor(){}
   getOptions(){}
   execute(){}

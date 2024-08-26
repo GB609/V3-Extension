@@ -1,0 +1,45 @@
+@media ( max-width :1000px) {
+	html {
+		min-width: unset !important;
+		min-height: unset !important
+	}
+	body>div {
+		background: unset !important;
+		display: none !important;
+	}
+
+	/* basic compat with TopLinks */
+	div[id^="topLinks_"] {
+		display: block !important;
+		position: static !important;
+		width: 100% !important;
+		overflow-x: scroll;
+		height: fit-content !important;
+		border-top: 1px solid lightgray;
+	}
+	div[id^="topLinks_"] a {
+		box-sizing: border-box;
+		border: 2px outset lightgray;
+		font-size: 0.9em !important;
+		padding: 3px;
+	}
+
+	/*
+   * Make all links to a list at the beginning. This is rudimentary and will be
+   * improved later with more containers etc
+   */
+	body>a {
+		position: static !important;
+		display: inline-block;
+		box-sizing: border-box;
+		border: 2px outset lightgray;
+		font-size: 0.9em !important;
+		padding: 3px;
+	}
+	#frameDiv_main {
+		position: static !important;
+		width: 100% !important;
+		height: calc(100% - var(--main-frame-top));
+		display: block !important;
+	}
+}

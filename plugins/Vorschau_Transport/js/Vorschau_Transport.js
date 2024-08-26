@@ -274,7 +274,7 @@ class TransportUpdatedEvent extends Event {
     CACHE.set("resUsage." + vsTable.provName, usage);
   }
 
-  let plugin_Vorschau = new Plugin("${artifactId}", {
+  let plugin_Vorschau = new V3Plugin("${artifactId}", {
     title: 'Vorschau: Transport',
     options: OPTIONS,
     eventListener: [

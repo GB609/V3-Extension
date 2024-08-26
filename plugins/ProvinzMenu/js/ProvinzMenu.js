@@ -274,7 +274,7 @@
     }
   }
   
-  let plugin_Menu = new Plugin("ProvinzMenu", {
+  let plugin_Menu = new V3Plugin("ProvinzMenu", {
     title: 'Provinzmenü',
     options: OPTIONS,
     execute: decideAction

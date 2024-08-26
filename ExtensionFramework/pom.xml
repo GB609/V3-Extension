@@ -25,12 +25,12 @@
   </properties>
 
   <dependencies>
-<!--    <dependency>-->
-<!--      <groupId>gb.v3</groupId>-->
-<!--      <artifactId>gm4-polyfill</artifactId>-->
-<!--      <classifier>lib</classifier>-->
-<!--      <version>2.0-SNAPSHOT</version>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>gb.v3</groupId>-->
+    <!--      <artifactId>gm4-polyfill</artifactId>-->
+    <!--      <classifier>lib</classifier>-->
+    <!--      <version>2.0-SNAPSHOT</version>-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>gb.v3</groupId>
       <artifactId>common</artifactId>
@@ -82,6 +82,12 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
+            <id>build-path</id>
+            <configuration>
+              <excludeTransitive>true</excludeTransitive>
+            </configuration>
+          </execution>
+          <execution>
             <id>get-plugins</id>
             <phase>generate-resources</phase>
             <goals>
@@ -89,6 +95,7 @@
             </goals>
             <configuration>
               <outputDirectory>${xslOutputDir}</outputDirectory>
+              <markersDirectory>target/get-plugins-markers</markersDirectory>
               <excludes>META-INF/*,META-INF</excludes>
             </configuration>
           </execution>

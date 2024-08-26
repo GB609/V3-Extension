@@ -1,5 +1,5 @@
 function listener(aTarget, aType, aFunc){ return {target:aTarget, type:aType, listener:aFunc}; }
-class Plugin {
+class V3Plugin {
 	constructor(pName, hooks = {}){ 
 		this.name = pName;
 		Object.assign(this, hooks);

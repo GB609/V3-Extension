@@ -259,7 +259,7 @@ defineProto(RadioSelectionOption.inherits(OptionWidget), {
       opt.key = this.key + "." + opt.value;
       this.input.add(opt);
       if(opt.selected == true){
-        this.updateCurrent(opt.value);
+        this.default = opt.value;
       }
     });
     return this.input;

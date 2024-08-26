@@ -100,7 +100,7 @@
     firstTd.style.textAlign = "center";
   };
   
-  let plugin_Rohstoffe = new Plugin('${artifactId}', {
+  let plugin_Rohstoffe = new V3Plugin('${artifactId}', {
     title: 'Rohstoffeglobal +/-',
   	eventListener : [{target:"resButton", type:"click", listener:retrieveAndShowResourceData}],
   	options: OPTIONS,
