@@ -25,5 +25,5 @@ if (!PROVINCES && window.self == window.top) {
   window.top.document.addEventListener("PL.loaded", function() {
     PROVINCES = CACHE.get("PL", []);
   }, {capture:false, signal:abortController.signal});
-  window.addEventListener('beforeunload', abortController.abort);
+  window.addEventListener('beforeunload', abortController.abort.bind(abortController));
 }
