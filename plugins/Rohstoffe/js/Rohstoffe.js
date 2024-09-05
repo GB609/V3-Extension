@@ -2,8 +2,14 @@
 	var RES_TABLE = DOM.byTag('table')[0];
 	
 	var OPTIONS = OptionGroup('RESGLB', "Optionen: Rohstoffeglobal +/-",
-    TEMPLATE.asDom('pluginDesc')
-	).showButtons(false);
+    TEMPLATE.asDom('pluginDesc'),
+    RadioSelectionOption('usageCalc', 'Methode zur Verbrauchsberechnung', [
+      Entry('', 'soldUnits', 'Industrie + Verkauf an Markt: Ergebnisse zeigen Änderungen der Provinzlager an'),
+      Entry('', 'precise', 'Industrie + echter Marktbedarf/Volksverbrauch: Genauer, unterscheidet aber das Marktlager nicht vom Provinzlager.', true)
+    ])
+	);
+
+  var retrieveCh;
 	
 	function withSign(number){
     return number > 0 ? '+'+number : number;
@@ -16,7 +22,7 @@
 		this.myTotalReserve = 0;
 	}
 	GlobalResource.prototype.add = function(provName, aProvRes) {
-		this.myTotalChange += aProvRes.ch;
+		this.myTotalChange += retrieveCh(aProvRes);
 		this.myTotalReserve += aProvRes.res;
 		this.entries[provName] = aProvRes;
 	};
@@ -34,15 +40,16 @@
       let firstColClass = tds[1].getAttribute("class");
 
       globalData[resName].entries.forEach((key, resource) => {
-      	 if (resource.ch != 0) {
+        let ch = retrieveCh(resource);
+      	 if (ch != 0) {
            let targetTD = tds[provList[key]];
-           targetTD.innerHTML = String.format('{} ({})', targetTD.innerHTML, withSign(resource.ch)); 
+           targetTD.innerHTML = String.format('{} ({})', targetTD.innerHTML, withSign(ch)); 
 
-           if(resource.ch > 0){
+           if(ch > 0){
            	targetTD.setAttribute("class", targetTD.getAttribute("class") + " hinweis1");
-           } else if ((resource.ch + resource.res) <= 0) {
+           } else if ((ch + resource.res) <= 0) {
              targetTD.setAttribute("class", targetTD.getAttribute("class") + " hinweis8");
-           } else if ((resource.ch + resource.st) <= 0) {
+           } else if ((ch + resource.st) <= 0) {
              targetTD.setAttribute("class", targetTD.getAttribute("class") + " hinweis5");
            }
          }
@@ -65,6 +72,11 @@
   }
 
   function retrieveAndShowResourceData() {
+    if(OPTIONS.usageCalc == 'precise'){
+      retrieveCh = function(res){ return res.chM | 0; }
+    } else {
+      retrieveCh = function(res) { return res.ch; }
+    }
     try {
       let provColumns = {}; 
       let links = DOM.byTag("a", RES_TABLE.rows[0]);
