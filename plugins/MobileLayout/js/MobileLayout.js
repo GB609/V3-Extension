@@ -213,7 +213,7 @@
     }
 
     if (OPTIONS.TABLES.stickyHeaders == true) {
-      HOOKS.stylesheet.ruleFor(DOM.thead, ', table[id] :nth-child(1 of tr)', 'position:sticky; top:0;');
+      HOOKS.stylesheet.ruleFor(DOM.thead, ', table[id] > tbody:nth-child(1) :nth-child(1 of tr)', 'position:sticky; top:0; background-color:black;');
     }
 
     if (HOOKS[curLocId]) {
