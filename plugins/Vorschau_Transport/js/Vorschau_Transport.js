@@ -268,6 +268,7 @@ class TransportUpdatedEvent extends Event {
       usage[key] = {
         st: val[stockPropName], //stock
         ch: val.change, //change
+        chM: rounded(val.change + val.sold - val.consumed),
         res: val[resPropName] //komplette reserve inkl. markt
       };
     });
