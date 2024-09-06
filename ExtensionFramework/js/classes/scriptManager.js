@@ -165,7 +165,7 @@ var ScriptManager;
 		 */
     this.getForLocation = function(aUrl) {
       let url = new URL(aUrl);
-      let cacheKey = this.KEY_LOCATION_MATCH + "." `${url.pathname}${url.search}`.replace('.', '_');
+      let cacheKey = this.KEY_LOCATION_MATCH + "." + `${url.pathname}${url.search}`.replace('.', '_');
       
       let matched = CACHE.get(cacheKey, null);
            
