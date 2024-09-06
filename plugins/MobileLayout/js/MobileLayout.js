@@ -205,22 +205,26 @@
   }
 
   var LINK_TITLE_PATTERN = /.*#title=(.*)$/;
+  var TITLE_EXTRACTORS = {
+    DIV: ()=>{ let x = document.querySelector("div.title"); return x == null ? "" : x.innerText; },
+    LINK: ()=>{ return decodeURI(LINK_TITLE_PATTERN.exec(location.href)[1] || ""); },
+    DIV_LINK_FB: ()=>{ let x = TITLE_EXTRACTORS.DIV(); return x.isEmpty() ? TITLE_EXTRACTORS.LINK() : x; },
+    "handelsinfo.php": ()=>{ return TITLE_EXTRACTORS.LINK() + " - " + TITLE_EXTRACTORS.DIV(); }
+  }
   function adjustPage() {
     //document.head.add(DOM.meta({ name: "viewport", content: "width=device-width, height=device-height" }));
     for (let i = 0; i < window.frames.length; i++) {
       let frameEle = window.frames[i].frameElement;
       frameEle.parentElement.setAttribute("id", "frameDiv_" + frameEle.getAttribute("name"));
     }
-
-    let titleDiv = document.querySelector('div.title');
+    
     let newTitle = document.title;
-    if(titleDiv != null){ 
-      newTitle = titleDiv.innerText; 
-    } else if(location.href.includes('#title=')){
-      newTitle = decodeURI(LINK_TITLE_PATTERN.exec(location.href)[1]);
-    } else if(location.pathname != "/index.php") {
-      newTitle = location.pathname.substr(1);
-    }
+    let path = location.pathname.substr(1) || "index.php";
+    
+    if(typeof TITLE_EXTRACTORS[path] == "function"){ newTitle = TITLE_EXTRACTORS[path](); }
+    else { newTitle = TITLE_EXTRACTORS.DIV_LINK_FB(); }
+    if(path != "index.php" && newTitle.isEmpty()) { newTitle = path;}
+    
     if(CFG.CURRENT_PROV != null){ newTitle = CFG.CURRENT_PROV + " - " + newTitle; }
     document.title = newTitle;
 
