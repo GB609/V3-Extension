@@ -225,8 +225,8 @@
     else { newTitle = TITLE_EXTRACTORS.DIV_LINK_FB(); }
     if(path != "index.php" && newTitle.isEmpty()) { newTitle = path;}
     
-    if(CFG.CURRENT_PROV != null){ newTitle = CFG.CURRENT_PROV + " - " + newTitle; }
-    document.title = newTitle;
+    if(CFG.CURRENT_PROV != null){ newTitle = CFG.CURRENT_PROV + " - " + (newTitle || document.title); }
+    document.title = newTitle || document.title;
 
     if (OPTIONS.TABLES.stickyHeaders == true) {
       HOOKS.stylesheet.ruleFor(DOM.thead, ', table[id] > tbody:nth-child(1) :nth-child(1 of tr)', 'position:sticky; top:0; background-color:black;');
@@ -240,7 +240,7 @@
 
   function addTitleToLink(evt){
     let a = evt.target;
-    if(a instanceof HTMLAnchorElement && !a.href.includes('#title=')){
+    if(a instanceof HTMLAnchorElement && !a.href.includes('#title=') && !a.href.includes('index.php')){
       let js = /^javascript:\w+\(.(\w+\.php.*?).\)$/;
       if(js.test(a.href)){
         let url = js.exec(a.href)[1];
