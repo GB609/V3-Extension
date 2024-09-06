@@ -208,23 +208,21 @@
     //document.head.add(DOM.meta({ name: "viewport", content: "width=device-width, height=device-height" }));
     for (let i = 0; i < window.frames.length; i++) {
       let frameEle = window.frames[i].frameElement;
-      let parent = frameEle.parentElement;
-      parent.setAttribute("id", "frameDiv_" + frameEle.getAttribute("name"));
+      frameEle.parentElement.setAttribute("id", "frameDiv_" + frameEle.getAttribute("name"));
     }
+
+    let titleDiv = document.querySelector('div.title');
+    if(titleDiv != null){ document.title = titleDiv.innerText; }
 
     if (OPTIONS.TABLES.stickyHeaders == true) {
       HOOKS.stylesheet.ruleFor(DOM.thead, ', table[id] > tbody:nth-child(1) :nth-child(1 of tr)', 'position:sticky; top:0; background-color:black;');
     }
 
-    if (HOOKS[curLocId]) {
-      HOOKS[curLocId]();
-    }
+    if (HOOKS[curLocId]) { HOOKS[curLocId](); }
 
     document.head.add(HOOKS.stylesheet);
 
-    if (LOGGER.OPTIONS.debug != true) {
-      delete HOOKS.stylesheet;
-    }
+    if (LOGGER.OPTIONS.debug != true) { delete HOOKS.stylesheet; }
   }
 
   let plugin_Mobile = new V3Plugin('${artifactId}', {
