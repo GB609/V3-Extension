@@ -239,7 +239,7 @@
       let js = /^javascript:\w+\(.(\w+\.php.*?).\)$/;
       if(js.test(a.href)){
         let url = js.exec(a.href)[1];
-        newUrl = url + '#title=' + a.innerText.replaceAll(/\W/g, '');
+        let newUrl = url + '#title=' + a.innerText.replaceAll(/\W/g, '');
         a.href = a.href.replace(url, newUrl);
       } else { a.href += '#title='+a.innerText.replaceAll(/\W/g, ''); }            
     }
