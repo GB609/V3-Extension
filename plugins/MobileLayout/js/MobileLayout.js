@@ -217,7 +217,7 @@
     if(titleDiv != null){ 
       newTitle = titleDiv.innerText; 
     } else if(location.href.includes('#title=')){
-      newTitle = LINK_TITLE_PATTERN.exec(location.href)[1];   
+      newTitle = decodeURI(LINK_TITLE_PATTERN.exec(location.href)[1]);
     } else {
       newTitle = location.pathname.substr(1);
     }
