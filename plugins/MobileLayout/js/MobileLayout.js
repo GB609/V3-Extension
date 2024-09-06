@@ -218,7 +218,7 @@
       newTitle = titleDiv.innerText; 
     } else if(location.href.includes('#title=')){
       newTitle = decodeURI(LINK_TITLE_PATTERN.exec(location.href)[1]);
-    } else {
+    } else if(location.pathname != "/index.php") {
       newTitle = location.pathname.substr(1);
     }
     if(CFG.CURRENT_PROV != null){ newTitle = CFG.CURRENT_PROV + " - " + newTitle; }
