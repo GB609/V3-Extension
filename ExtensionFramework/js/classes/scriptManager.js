@@ -164,13 +164,14 @@ var ScriptManager;
 		 * rule defined in the plugin script
 		 */
     this.getForLocation = function(aUrl) {
-      let allMatched = CACHE.get(this.KEY_LOCATION_MATCH, {});
       let url = new URL(aUrl);
-      let cacheKey = `${url.pathname}${url.search}`;
-     
-      if(!Array.isArray(allMatched[cacheKey])){
+      let cacheKey = `${this.KEY_LOCATION_MATCH}.${url.pathname}${url.search}`;
+      
+      let matched = CACHE.get(cacheKey, null);
+           
+      if(!Array.isArray(matched)){
         aUrl = url.href;
-      	var matched = [];
+      	matched = [];
 	      _scripts.forEach(function(sname, script) {
 	        if (!script.enabled) {
 	          return;
@@ -182,13 +183,12 @@ var ScriptManager;
 	        if (script.includes(aUrl)) {
 	          matched.push(script.name);
 	        }
-	      });
-	      allMatched[cacheKey] = matched;
-	      CACHE.set(this.KEY_LOCATION_MATCH, allMatched);
+	      });	      
+	      CACHE.set(cacheKey, matched);
       }
       
       var matchedScripts = [];
-      allMatched[cacheKey].forEach(function(val, idx){
+      matched.forEach(function(val, idx){
       	matchedScripts.push(_scripts[val]);
       });
       return matchedScripts;
