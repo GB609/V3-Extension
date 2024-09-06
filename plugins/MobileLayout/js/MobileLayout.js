@@ -207,7 +207,7 @@
   var LINK_TITLE_PATTERN = /.*#title=(.*)$/;
   var TITLE_EXTRACTORS = {
     DIV: ()=>{ let x = document.querySelector("div.title"); return x == null ? "" : x.innerText; },
-    LINK: ()=>{ return decodeURI(LINK_TITLE_PATTERN.exec(location.href)[1] || ""); },
+    LINK: ()=>{ return decodeURI((LINK_TITLE_PATTERN.exec(location.href) || [])[1] || ""); },
     DIV_LINK_FB: ()=>{ let x = TITLE_EXTRACTORS.DIV(); return x.isEmpty() ? TITLE_EXTRACTORS.LINK() : x; },
     "handelsinfo.php": ()=>{ return TITLE_EXTRACTORS.LINK() + " - " + TITLE_EXTRACTORS.DIV(); }
   }
