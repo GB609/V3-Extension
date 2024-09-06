@@ -204,7 +204,7 @@
     }
   }
 
-  var LINK_TITLE_PATTERN = /.*#title=(\w+)$/
+  var LINK_TITLE_PATTERN = /.*#title=(\w+)$/;
   function adjustPage() {
     //document.head.add(DOM.meta({ name: "viewport", content: "width=device-width, height=device-height" }));
     for (let i = 0; i < window.frames.length; i++) {
@@ -217,7 +217,7 @@
     if(titleDiv != null){ 
       newTitle = titleDiv.innerText; 
     } else if(location.href.contains('#title=')){
-      newTitle = LINK_TITLE_PATTERN.exec(location.href)[1];
+      newTitle = LINK_TITLE_PATTERN.exec(location.href)[1];   
     } else {
       newTitle = location.pathname.substr(1);
     }
@@ -236,7 +236,12 @@
   function addTitleToLink(evt){
     let a = evt.target;
     if(a instanceof HTMLAnchorElement && !a.href.includes('#title=')){
-      a.href += '#title='+a.innerText.replaceAll(/\W/g, '');
+      let js = /^javascript:\w+\(.(\w+\.php.*?).\)$/;
+      if(js.test(a.href)){
+        let url = js.exec(a.href)[1];
+        newUrl = url + '#title=' + a.innerText.replaceAll(/\W/g, '');
+        a.href = a.href.replace(url, newUrl);
+      } else { a.href += '#title='+a.innerText.replaceAll(/\W/g, ''); }            
     }
   }
 
