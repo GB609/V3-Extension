@@ -122,7 +122,7 @@ class TransportUpdatedEvent extends Event {
         report.addElement(result.report);
 
         if (OPTIONS.reloadAfterTransport.value === true) {
-          report.onClick(function() { window.location.href = "vorschau.php?provinz=" + CFG.CURRENT_PROV; });
+          report.onClick(function() { window.location.reload(); });
         }
 
         report.show();
