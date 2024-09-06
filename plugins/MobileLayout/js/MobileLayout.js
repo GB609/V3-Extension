@@ -204,6 +204,7 @@
     }
   }
 
+  var LINK_TITLE_PATTERN = /.*#title=(\w+)$/
   function adjustPage() {
     //document.head.add(DOM.meta({ name: "viewport", content: "width=device-width, height=device-height" }));
     for (let i = 0; i < window.frames.length; i++) {
@@ -212,7 +213,15 @@
     }
 
     let titleDiv = document.querySelector('div.title');
-    if(titleDiv != null){ document.title = titleDiv.innerText; }
+    let newTitle = document.title;
+    if(titleDiv != null){ 
+      newTitle = titleDiv.innerText; 
+    } else if(location.href.contains('#title=')){
+      newTitle = LINK_TITLE_PATTERN.exec(location.href)[1];
+    } else {
+      newTitle = location.pathname.substr(1);
+    }
+    if(CFG.CURRENT_PROV != null){ newTitle = CFG.CURRENT_PROV + " - " + newTitle; }
 
     if (OPTIONS.TABLES.stickyHeaders == true) {
       HOOKS.stylesheet.ruleFor(DOM.thead, ', table[id] > tbody:nth-child(1) :nth-child(1 of tr)', 'position:sticky; top:0; background-color:black;');
@@ -221,14 +230,20 @@
     if (HOOKS[curLocId]) { HOOKS[curLocId](); }
 
     document.head.add(HOOKS.stylesheet);
-
     if (LOGGER.OPTIONS.debug != true) { delete HOOKS.stylesheet; }
+  }
+
+  function addTitleToLink(evt){
+    let a = evt.target;
+    if(a instanceof HTMLAnchorElement && !a.href.includes('#title=')){
+      a.href += '#title='+a.innerText.replaceAll(/\W/g, '');
+    }
   }
 
   let plugin_Mobile = new V3Plugin('${artifactId}', {
     title: 'UI Anpassungen',
     options: OPTIONS,
-    eventListener: [],
+    eventListener: [listener(document.body, 'mousedown', addTitleToLink)],
     execute: adjustPage
   });
   return plugin_Mobile.run();
