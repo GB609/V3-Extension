@@ -253,7 +253,7 @@
   let plugin_Mobile = new V3Plugin('${artifactId}', {
     title: 'UI Anpassungen',
     options: OPTIONS,
-    eventListener: [listener(document.body, 'mousedown', addTitleToLink)],
+    //eventListener: [listener(document.body, 'mousedown', addTitleToLink)],
     execute: adjustPage
   });
   return plugin_Mobile.run();
