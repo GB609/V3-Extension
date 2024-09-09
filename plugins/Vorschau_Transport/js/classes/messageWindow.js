@@ -152,6 +152,6 @@ function MessageWindow(aSize, aPosition) {
   }  
 
   t.prototype.onClick = function(handler) {
-    this.divOverlay.addEventHandler('click', handler);
+    this.divOverlay.addEventListener('click', handler);
   };
 })(MessageWindow);
