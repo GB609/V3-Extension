@@ -91,6 +91,8 @@ function MessageWindow(aSize, aPosition) {
     
     document.body.add(that.divOverlay);
   }
+
+  this.constructWindow();
 }
 
 (function(t) {
