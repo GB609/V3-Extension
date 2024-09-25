@@ -176,8 +176,16 @@ async function startup() {
   if (location.pathname == "/index.php"
     || location.pathname == "/") {
     await ScriptManager.init(RESOURCES);
+    window.top.extensionReadyState = "complete";
+    window.top.dispatchEvent(new Event('extensionReadyStateChange'));
   }
 
+  if(window.top.extensionReadyState != "complete" && window.self != window.top){
+    window.top.addEventListener('extensionReadyStateChange', startup);
+    return;
+  } else {
+    window.top.removeEventListener('extensionReadyStateChange', startup);
+  }
   try {
     handleSync();
     await loadActiveScriptsForCurrentWindow();
