@@ -176,7 +176,7 @@ async function startup() {
   if (location.pathname == "/index.php"
     || location.pathname == "/") {
     await ScriptManager.init(RESOURCES);
-    window.top.extensionReadyState = "complete";
+    unsafeWindow.top.extensionReadyState = "complete";
     window.top.dispatchEvent(new Event('extensionReadyStateChange'));
   }
 
