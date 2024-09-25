@@ -148,10 +148,13 @@ var OPTIONS = {};
     let group = OptionGroup(ScriptManager.KEY_DISABLED, "Aktive V3 Erweiterungen:");
     group.childPanel.className = "naviPanel";
     group.add(new Style()
-      .ruleFor(CheckOption, 'display:block;')
+      .ruleFor(CheckOption, 'display:block !important; white-space:nowrap; width:100%')
       .ruleFor(CheckOption, ' *[disabled]', 'visibility:hidden;')
       .ruleFor(CheckOption, ':hover', 'cursor:pointer;')
-      .ruleFor(DOM.h3, 'margin:5px 0;'));
+      .ruleFor(DOM.h3, 'margin:5px 0;')
+      .addRule('.naviPanel > * > * { display:inline-block; white-space:normal; vertical-align:middle; }')
+      .addRule('.naviPanel > * > input[type=checkbox] { transform:scale(1.2); }')
+      .addRule('.naviPanel > * > :nth-child(2) { width:min-content; }'));
 
     for (sname of Object.keys(all)) {
       let val = all[sname];
