@@ -173,6 +173,10 @@ var ScriptManager;
       if(!Array.isArray(matched)){
         aUrl = url.href;
       	matched = [];
+        _scripts = CACHE.get(this.KEY_SCRIPT_STORE, {});
+        if(_scripts.isEmpty()){
+          LOGGER.error("Script cache is EMPTY!");
+        }
 	      _scripts.forEach(function(sname, script) {
 	        if (!script.enabled) {
 	          return;
