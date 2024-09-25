@@ -218,8 +218,7 @@
       frameEle.parentElement.setAttribute("id", "frameDiv_" + frameEle.getAttribute("name"));
     }
 
-    LOGGER.debug("document title is", document.title);
-    if(OPTIONS.NAV.linksAsButtons == true && document.title.includes("Navigation")){
+    if(OPTIONS.NAV.linksAsButtons == true && (/navigation/i).test(document.title)) {
       HOOKS.stylesheet.addRule(TEMPLATE.asText('naviFrame.css'));
     }
     
