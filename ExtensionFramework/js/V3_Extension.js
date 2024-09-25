@@ -166,8 +166,8 @@ var OPTIONS = {};
       if(val.content.alwaysActive === true){
         opt.click = optionLink.click;
       }
-      opt.setAttribute('class', opt.getAttribute('class') + " navItem");
       group.add(opt);
+      opt.setAttribute('class', opt.getAttribute('class') + " navItem");
     }
     addition = group.init();
   }
