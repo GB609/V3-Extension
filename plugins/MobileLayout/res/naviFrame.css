@@ -13,7 +13,7 @@ div.textleft a, .naviPanel > .navItem {
 	box-sizing: border-box;
 }
 
-div.textleft a:hover, .naviPanel > .navItem {
+div.textleft a:hover, .naviPanel > .navItem:hover {
 	border-style: outset !important;
 	border-color: white;
 }
