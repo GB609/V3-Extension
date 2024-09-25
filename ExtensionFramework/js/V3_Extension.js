@@ -166,6 +166,7 @@ var OPTIONS = {};
       if(val.content.alwaysActive === true){
         opt.click = optionLink.click;
       }
+      opt.setAttribute('class', opt.getAttribute('class') + " navItem");
       group.add(opt);
     }
     addition = group.init();
