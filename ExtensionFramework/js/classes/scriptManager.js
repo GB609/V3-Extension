@@ -157,6 +157,7 @@ var ScriptManager;
       }
 
       CACHE.set(this.KEY_SCRIPT_STORE, _scripts);
+      CACHE.clear(this.KEY_LOCATION_MATCH);
     };
 
     /**
