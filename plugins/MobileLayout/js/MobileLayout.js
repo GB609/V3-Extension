@@ -7,8 +7,7 @@
       .ruleFor(OptionGroup, ' .optionGroup', `
         border: 2px dotted lightgrey;
         border-radius: 5px;
-        padding:5px;
-        margin:5px 0px;`)
+        padding:5px; margin:5px 0px;`)
       .ruleFor(DOM.h4, "margin-top:5px")
       .ruleFor(CheckOption, "display: block"),
 
@@ -19,9 +18,9 @@
           Entry('', 'icons', 'Bilder verwenden', true),
           Entry('', 'enlargeLinks', 'Links vergrößern'),
           Entry('', 'no-mods', 'unberührt lassen'),
-          Entry('', 'hide', 'ausblenden')
-        ])),
-      new BorderedGroup('Ansicht'),
+          Entry('', 'hide', 'ausblenden')]))
+        .add(CheckOption('linksAsButtons', 'Menüeinträge mit Rahmen und vergößertem Klickbereich anzeigen', true)),
+      //new BorderedGroup('Ansicht'),
       new BorderedGroup('Baumenü')
         .add(CheckOption('hideUnavailable', 'Unbaubares ausblenden (Uniques, Küste/Land, betrifft NICHT fehlendes Material)', true))
         .add(CheckOption('categoryAsFilter', 'Kategorie-Links in Filter umwandeln'), true)
@@ -193,7 +192,6 @@
             font-size: 1.5em !important;
           }`
         );
-
         break;
 
       case 'hide':
@@ -201,6 +199,10 @@
         break;
 
       //no default on purpose - do nothing if not specified
+    }
+
+    if(OPTIONS.PROV.linksAsButtons == true){
+      this.stylesheet.addRule(TEMPLATE.asText('naviFrame.css'));
     }
   }
 
