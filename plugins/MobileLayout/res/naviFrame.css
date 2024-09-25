@@ -4,7 +4,7 @@ div.textleft br {
 	padding: 0px;
 }
 
-div.textleft a {
+div.textleft a, .naviPanel > * {
 	padding: 0.3em;
 	border: outset 2px darkgray;
 	margin-top: 3px;
@@ -13,7 +13,7 @@ div.textleft a {
 	box-sizing: border-box;
 }
 
-div.textleft a:hover {
+div.textleft a:hover, .naviPanel > *:hover {
 	border-style: outset !important;
 	border-color: white;
 }
