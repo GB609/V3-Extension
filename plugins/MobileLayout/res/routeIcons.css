@@ -37,6 +37,11 @@ a[href^="transfer.php?from"]){
     width:40px !important; height:40px !important; padding:0px !important;
 }
 
+td:nth-child(9) > br,
+td:nth-child(10) > br {
+    display: none !important;
+}
+
 /*** Bilder ***/
 /* Einheiten erstellen / bearbeiten */
 #routeTable td > :is(a[href^="erstellen.php?from=routenmenu&routeid"], a[href^="erstellen.php?from=aufstellen&routeid"]) {
