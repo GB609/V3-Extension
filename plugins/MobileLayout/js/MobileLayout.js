@@ -27,18 +27,23 @@
         .add(CheckOption('hideUnavailable', 'Unbaubares ausblenden (Uniques, Küste/Land, betrifft NICHT fehlendes Material)', true))
         .add(CheckOption('categoryAsFilter', 'Kategorie-Links in Filter umwandeln'), true)
     ),
+    OptionGroup('ROUTES', false,
+      DOM.h4().add('Routenverwaltung'),
+      CheckOption('useIcons', 'Icons/Buttons statt Textlinks für alle Routenaktionen', true)
+    ),
     OptionGroup('TABLES', false,
       DOM.h4().add('Tabellen allgemein'),
       CheckOption('stickyHeaders', 'Tabellenüberschriften beim Scrollen sichtbar halten', true),
       CheckOption('markFilter', 'Eingestellte Filter bei vor/zurück Navigation merken', false).attributes({ disabled: true }),
-      CheckOption('enlargeLinks', 'Links vergrößern', false).attributes({ disabled: true }),
+      CheckOption('enlargeLinks', 'Link-Klickbereiche nach oben/unten vergrößern für bessere Touch-Bedienung', false).attributes({ disabled: true }),
       CheckOption('entryNameAsLink', 'Info-Tabellen: Link/ID spalten ausblenden. Eigentliche Bezeichnung (i.d.R. 3. Spalte) wird zu Link.', false).attributes({ disabled: true })
     ),
     OptionGroup('MOBILE', false,
       DOM.h4().add('Speziell für kleine Bildschirme/Smartphones'),
       CheckOption('settings', 'Navigation: Zivile Einstellungen mit DropDowns und Schiebereglern modernisieren', true),
+      CheckOption('build_squashTable', 'Baumenü: Bestimmte Spalten zusammenfassen zur Reduktion der Breite', false).attributes({ disabled: true }),
       CheckOption('hideVSColumns', 'Vorschau: Mittlere Spalten ausblenden (und zusammenfassen). Ergänzt auch einen Button zum ausklappen.', false).attributes({ disabled: true }),
-      CheckOption('build_squashTable', 'Baumenü: Bestimmte Spalten zusammenfassen zur Reduktion der Breite', false).attributes({ disabled: true })
+      CheckOption('routes_squashTable', 'Routenmenü: Spalten zusammenfassen und neu organisieren für weniger Mindestbreite', false).attributes({ disabled: true })
     )
   )
 
@@ -201,6 +206,17 @@
         break;
 
       //no default on purpose - do nothing if not specified
+    }
+  }
+
+  this.routenmenu_php = function(){
+    if(OPTIONS.ROUTES.useIcons == true){
+      document.querySelector('body > table').setAttribute('id', 'routeTable');
+      this.stylesheet.addRule(TEMPLATE.asText('routeIcons.css'));
+    }
+
+    if(OPTIONS.MOBILE.routes_squashTable == true){
+      //do some squashing
     }
   }
 
