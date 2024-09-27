@@ -212,9 +212,11 @@
   this.routenmenu_php = function(){
     let routeTable = document.querySelector('body > table');
     routeTable.setAttribute('id', 'routeTable');
+    let isSingleRoute = /verlassen=\d+$/.test(document.location.href)
+    || /betreten=\d+$/.test(document.location.href)
     if(OPTIONS.ROUTES.useIcons == true){
       this.stylesheet.addRule(TEMPLATE.asText('routeIcons.css'));
-      if(/route=\d+$/.test(document.location.href)){
+      if(isSingleRoute){
         this.stylesheet.addRule('#routeTable > tbody > :nth-last-child(2 of tr) br { display: none; }');
       }
     }
@@ -223,7 +225,7 @@
       //do some squashing
 
       //detail view of one route
-      if(/route=\d+$/.test(document.location.href)){
+      if(isSingleRoute){
         let lastRow = routeTable.rows[routeTable.rows.length-1];
         lastRow.style.display="none";
         lastRow.querySelectorAll('a').forEach(ele => lastRow.previousElementSibling.lastElementChild.appendChild(ele));
