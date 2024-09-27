@@ -43,7 +43,7 @@
       CheckOption('settings', 'Navigation: Zivile Einstellungen mit DropDowns und Schiebereglern modernisieren', true),
       CheckOption('build_squashTable', 'Baumenü: Bestimmte Spalten zusammenfassen zur Reduktion der Breite', false).attributes({ disabled: true }),
       CheckOption('hideVSColumns', 'Vorschau: Mittlere Spalten ausblenden (und zusammenfassen). Ergänzt auch einen Button zum ausklappen.', false).attributes({ disabled: true }),
-      CheckOption('routes_squashTable', 'Routenmenü: Spalten zusammenfassen und neu organisieren für weniger Mindestbreite', false).attributes({ disabled: true })
+      CheckOption('routes_squashTable', 'Routenmenü: Spalten zusammenfassen und neu organisieren für weniger Mindestbreite', true)
     )
   )
 
