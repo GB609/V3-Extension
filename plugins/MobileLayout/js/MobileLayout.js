@@ -216,7 +216,7 @@
       this.stylesheet.addRule(TEMPLATE.asText('routeIcons.css'));
     }
 
-    if(OPTIONS.MOBILE.routes_squashTable == true){
+    if(OPTIONS.MOBILE.routes_squashTable == true && !/route=\d+$/.test(document.location.href)){
       //do some squashing
       this.stylesheet
         .addRule('#routeTable > tbody > tr > :is(:nth-child(1 of td), :nth-child(5 of td), :nth-child(10 of td)){ display:none; }')
