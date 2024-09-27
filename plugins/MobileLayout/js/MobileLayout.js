@@ -214,10 +214,23 @@
     routeTable.setAttribute('id', 'routeTable');
     if(OPTIONS.ROUTES.useIcons == true){
       this.stylesheet.addRule(TEMPLATE.asText('routeIcons.css'));
+      if(/route=\d+$/.test(document.location.href)){
+        this.stylesheet.addRule('#routeTable > tbody > :nth-last-child(2 of tr) br { display: none; }');
+      }
     }
 
-    if(OPTIONS.MOBILE.routes_squashTable == true && !/route=\d+$/.test(document.location.href)){
+    if(OPTIONS.MOBILE.routes_squashTable == true){
       //do some squashing
+
+      //detail view of one route
+      if(/route=\d+$/.test(document.location.href)){
+        let lastRow = routeTable.rows[routeTable.rows.length-1];
+        lastRow.style.display="none";
+        lastRow.querySelectorAll('a').forEach(ele => lastRow.previousElementSibling.lastElementChild.appendChild(ele));
+        return
+      }
+
+      //route table
       this.stylesheet
         .addRule('#routeTable > tbody > tr > :is(:nth-child(1 of td), :nth-child(5 of td), :nth-child(10 of td)){ display:none; }')
         .addRule('#routeTable > tbody > tr > :nth-child(2 of td){ box-sizing:content-box; width:100px; }');
