@@ -210,13 +210,29 @@
   }
 
   this.routenmenu_php = function(){
+    let routeTable = document.querySelector('body > table');
+    routeTable.setAttribute('id', 'routeTable');
     if(OPTIONS.ROUTES.useIcons == true){
-      document.querySelector('body > table').setAttribute('id', 'routeTable');
       this.stylesheet.addRule(TEMPLATE.asText('routeIcons.css'));
     }
 
     if(OPTIONS.MOBILE.routes_squashTable == true){
       //do some squashing
+      this.stylesheet
+        .addRule('#routeTable > tbody > tr > :is(:nth-child(1 of td), :nth-child(5 of td), :nth-child(10 of td)){ display:none; }')
+        .addRule('#routeTable > tbody > tr > :nth-child(2 of td){ box-sizing:content-box; width:100px; }');
+      routeTable.rows[0].lastElementChild.style.display="none";
+      
+      this.stylesheet.addRule('#routeTable > tbody > tr > td > * { display:inline-block; float:unset; }');
+      let routeList = document.querySelectorAll('#routeTable img[src^=mappos]');
+      for(let img of routeList){
+        let row = img.parentElement.parentElement;
+        let cells = row.cells;
+        
+        cells[1].insertBefore(img, cells[1].firstElementChild);
+        cells[5].insertBefore(cells[4].firstElementChild, cells[5].firstElementChild);
+        cells[9].querySelectorAll('a').forEach(ele => cells[8].appendChild(ele));
+      }
     }
   }
 
