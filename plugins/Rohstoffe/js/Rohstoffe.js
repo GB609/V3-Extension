@@ -73,7 +73,7 @@
 
   function retrieveAndShowResourceData() {
     if(OPTIONS.usageCalc == 'precise'){
-      retrieveCh = function(res){ return res.chM | 0; }
+      retrieveCh = function(res){ return res.chM || 0; }
     } else {
       retrieveCh = function(res) { return res.ch; }
     }
