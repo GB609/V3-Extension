@@ -214,6 +214,7 @@
     routeTable.setAttribute('id', 'routeTable');
     let isSingleRoute = /verlassen=\d+$/.test(document.location.href)
     || /betreten=\d+$/.test(document.location.href)
+    || /route=\d+$/.test(document.location.href);
     if(OPTIONS.ROUTES.useIcons == true){
       this.stylesheet.addRule(TEMPLATE.asText('routeIcons.css'));
       if(isSingleRoute){
